@@ -2,14 +2,13 @@
 
 (require
  '[pallet.project.loader :refer [defproject]]
- '[clustermap-mesos.groups.mesos-master :refer [mesos-master]]
- '[clustermap-mesos.groups.mesos-slave :refer [mesos-slave]])
+ '[clustermap-mesos.groups
+   :refer [mesos-master-group
+           mesos-slave-es-data-group
+           mesos-slave-es-nodata-group]])
 
 (defproject clustermap-mesos
-  :provider {:jclouds
-             {:node-spec
-              {:image {:os-family :ubuntu :os-version-matches "14.04"
-                       :os-64-bit true}}}
-             }
-
-  :groups [mesos-master mesos-slave])
+  :provider {}
+  :groups [mesos-master-group
+           mesos-slave-es-data-group
+           mesos-slave-es-nodata-group])

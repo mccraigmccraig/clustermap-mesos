@@ -1,8 +1,14 @@
 (defproject clustermap-mesos "0.1.0-SNAPSHOT"
   :description "FIXME Pallet project for clustermap-mesos"
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [com.palletops/pallet "0.8.0-RC.9"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [com.palletops/pallet "0.8.0-SNAPSHOT"] ;; "0.8.0-RC.9"
                  [com.palletops/pallet-jclouds "1.7.3"]
+
+                 ;; direct aws provider...
+                 [com.palletops/pallet-aws "0.2.3"]
+                 [com.palletops/awaze "0.1.2-SNAPSHOT" :exclusions [[commons-logging] [commons-codec]]]
+                 [org.slf4j/jcl-over-slf4j "1.7.5"]
+
                  ;; To get started we include all jclouds compute providers.
                  ;; You may wish to replace this with the specific jclouds
                  ;; providers you use, to reduce dependency sizes.
@@ -12,7 +18,7 @@
                   ;; the declared version is old and can overrule the
                   ;; resolved version
                   :exclusions [org.slf4j/slf4j-api]]
-                 [org.apache.jclouds.driver/jclouds-sshj "1.7.2"]
+                 [org.apache.jclouds.driver/jclouds-sshj "1.7.2" :exclusions [net.schmizz/sshj]]
                  [ch.qos.logback/logback-classic "1.0.9"]]
   :profiles {:dev
              {:dependencies
