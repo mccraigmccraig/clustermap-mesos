@@ -8,6 +8,7 @@
            mesos-slave-es-nodata-group]])
 
 (defproject clustermap-mesos
+  :source-paths ["src"]
   :provider {}
   :groups [mesos-master-group
            mesos-slave-es-data-group

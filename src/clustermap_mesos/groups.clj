@@ -13,20 +13,19 @@
               :extends [base-server
                         mesos-master-server
                         elasticsearch-master-server]
-              ;; :node-spec ubuntu-1404-hvm-ebs-200-node
-              :node-spec ubuntu-1404-pv-ebs-200-node
+              :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")
               ))
 
-(def mesos-slave-es-data-group
-  (group-spec "mesos-slave-es-data"
+(def mesos-data-slave-group
+  (group-spec "mesos-data-slave"
               :extends [base-server
                         mesos-slave-server
                         elasticsearch-data-server]
-              :node-spec ubuntu-1404-pv-ebs-200-node))
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")))
 
-(def mesos-slave-es-nodata-group
-  (group-spec "mesos-slave-es-nodata"
+(def mesos-nodata-slave-group
+  (group-spec "mesos-nodata-slave"
               :extends [base-server
                         mesos-slave-server
                         elasticsearch-nodata-server]
-              :node-spec ubuntu-1404-pv-ebs-200-node))
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")))

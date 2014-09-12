@@ -5,7 +5,7 @@
                  [com.palletops/pallet-jclouds "1.7.3"]
 
                  ;; direct aws provider...
-                 [com.palletops/pallet-aws "0.2.3"]
+                 [com.palletops/pallet-aws "0.2.4-SNAPSHOT"]
                  [com.palletops/awaze "0.1.2-SNAPSHOT" :exclusions [[commons-logging] [commons-codec]]]
                  [org.slf4j/jcl-over-slf4j "1.7.5"]
 
