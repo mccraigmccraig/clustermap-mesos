@@ -1,22 +1,27 @@
 (ns clustermap-mesos.servers.mesos
   (:require
    [pallet.api :refer [server-spec plan-fn]]
-   [pallet.actions :refer [package]]
+   [pallet.actions :refer [exec-script* remote-file package package-source package-manager]]
    [clustermap-mesos.servers.zookeeper :refer [zookeeper-master-server]]
    [clustermap-mesos.servers.marathon
     :refer [marathon-master-server
             marathon-haproxy-configurator]]))
 
 (def
-  ^{:doc "Define a server spec for mesos-master servers"
+  ^{:doc "Define a base server spec for mesos servers"
     :private true}
   mesos-base-server
   (server-spec
    :phases
    {:configure (plan-fn
-                ;; Add your crate class here
-                (package "git")
-                )}))
+                (package-manager :update)
+                (package-source "mesosphere" :aptitude {:url "http://repos.mesosphere.io/ubuntu"
+                                                        :release "trusty"
+                                                        :scopes ["main"]
+                                                        :keyserver "keyserver.ubuntu.com"
+                                                        :key-id "E56151BF"})
+                (package-manager :update)
+                (package "mesos"))}))
 
 (def
   ^{:doc "Define a server spec for mesos-master servers"}
@@ -28,7 +33,8 @@
              marathon-haproxy-configurator]
    :phases
    {:configure (plan-fn
-                ;; Add your crate class here
+                (remote-file "/etc/init/mesos-slave.override" :content "manual")
+
                 )}))
 
 (def
@@ -39,5 +45,5 @@
              marathon-haproxy-configurator]
    :phases
    {:configure (plan-fn
-                ;; Add your crate class here
+                (remote-file "/etc/init/mesos-master.override" :content "manual")
                 )}))

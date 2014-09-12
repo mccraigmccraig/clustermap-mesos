@@ -9,7 +9,6 @@
    :phases
    {:configure (plan-fn
                 ;; Add your crate class here
-                (package "git")
                 )}))
 
 (def elasticsearch-master-server
