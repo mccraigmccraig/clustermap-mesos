@@ -14,13 +14,11 @@
   (server-spec
    :phases
    {:configure (plan-fn
-                (package-manager :update)
                 (package-source "mesosphere" :aptitude {:url "http://repos.mesosphere.io/ubuntu"
                                                         :release "trusty"
                                                         :scopes ["main"]
                                                         :keyserver "keyserver.ubuntu.com"
                                                         :key-id "E56151BF"})
-                (package-manager :update)
                 (package "mesos"))}))
 
 (def
