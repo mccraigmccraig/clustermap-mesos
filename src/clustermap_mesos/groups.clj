@@ -14,6 +14,7 @@
               mesos-master-server
               elasticsearch-master-server]
     :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")
+    ;; :count 3
     ))
 
 (def mesos-data-slave-group
@@ -21,14 +22,18 @@
     :extends [base-server
               mesos-slave-server
               elasticsearch-data-server]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")))
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")
+    ;; :count 3
+    ))
 
 (def mesos-nodata-slave-group
   (group-spec "mesos-nodata-slave"
     :extends [base-server
               mesos-slave-server
               elasticsearch-nodata-server]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")))
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9")
+    ;; :count 3
+    ))
 
 
 (comment

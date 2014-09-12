@@ -2,10 +2,17 @@
   (:require
    [pallet.api :refer [server-spec plan-fn]]
    [pallet.actions :refer [exec-script* remote-file package package-source package-manager]]
+   [pallet.crate :refer [defplan nodes-with-role target-node]]
+   [pallet.node :refer [primary-ip private-ip]]
    [clustermap-mesos.servers.zookeeper :refer [zookeeper-master-server]]
    [clustermap-mesos.servers.marathon
     :refer [marathon-master-server
             marathon-haproxy-configurator]]))
+
+(defplan mesos-base-config
+  []
+  (let [zookeeper-ips (->> (nodes-with-role :zookeeper-master) (map private-ip) sort)
+        ]))
 
 (def
   ^{:doc "Define a base server spec for mesos servers"
@@ -19,6 +26,7 @@
                                                         :scopes ["main"]
                                                         :keyserver "keyserver.ubuntu.com"
                                                         :key-id "E56151BF"})
+                (package-manager :update)
                 (package "mesos"))}))
 
 (def

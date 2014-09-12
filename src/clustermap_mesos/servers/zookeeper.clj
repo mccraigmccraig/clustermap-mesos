@@ -4,15 +4,7 @@
    [pallet.api :refer [server-spec plan-fn]]
    [pallet.node :refer [primary-ip private-ip]]
    [pallet.crate :refer [defplan nodes-with-role target-node]]
-   [pallet.actions :refer [package remote-file remote-file-content with-service-restart]]
-   [clustermap-mesos.utils :refer [format-nodes]]))
-
-(def ^:private zookeeper-master-base
-  (server-spec
-   :roles [:zookeeper-master]
-   :phases
-   {:configure (plan-fn
-                (package "zookeeper"))}   ))
+   [pallet.actions :refer [package remote-file remote-file-content with-service-restart]]))
 
 (def zookeeper-config-base
   "tickTime=2000
@@ -34,16 +26,13 @@ clientPort=2181
                             (str/join "\n"))]
     (remote-file "/etc/zookeeper/conf/myid"
                  :content node-id)
-    (remote-file "/etc/zookeeper/conf/zoo.cfg" :content (str zookeeper-config-base config-servers))
-    ))
+    (remote-file "/etc/zookeeper/conf/zoo.cfg" :content (str zookeeper-config-base config-servers))))
 
 (def zookeeper-master-server
   (server-spec
-   :extends [zookeeper-master-base]
+   :roles [:zookeeper-master]
    :phases
    {:configure (plan-fn
+                (package "zookeeper")
                 (with-service-restart "zookeeper"
-                  (zookeeper-config))
-                ;; (remote-file "/etc/zookeeper/conf/zoo.cfg" )
-
-                )}))
+                  (zookeeper-config)))}))
