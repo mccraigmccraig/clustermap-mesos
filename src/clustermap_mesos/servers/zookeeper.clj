@@ -6,7 +6,7 @@
    [pallet.crate :refer [defplan nodes-with-role target-node]]
    [pallet.actions :refer [package remote-file remote-file-content with-service-restart]]))
 
-(def zookeeper-config-base
+(def ^:private zookeeper-config-base
   "tickTime=2000
 initLimit=10
 syncLimit=5
@@ -16,7 +16,7 @@ clientPort=2181
 
 (defplan zookeeper-config
   []
-  (let [zookeeper-ips (->> (nodes-with-role :zookeeper-master) (map private-ip) sort)
+  (let [zookeeper-ips (->> (nodes-with-role :zookeeper) (map private-ip) sort)
         node-ip (private-ip (target-node))
 
         node-id (inc (.indexOf zookeeper-ips node-ip))
@@ -24,13 +24,16 @@ clientPort=2181
                             (map vector (iterate inc 1) zookeeper-ips)
                             (map (fn [[idx ip]] (str "server." idx "=" ip ":2888:3888")))
                             (str/join "\n"))]
-    (remote-file "/etc/zookeeper/conf/myid"
-                 :content node-id)
-    (remote-file "/etc/zookeeper/conf/zoo.cfg" :content (str zookeeper-config-base config-servers))))
+    (remote-file "/etc/zookeeper/conf/myid" :content node-id)
+    (remote-file "/etc/zookeeper/conf/zoo.cfg" :content (str zookeeper-config-base config-servers))
 
-(def zookeeper-master-server
+    (remote-file "/usr/local/bin/zookeeper-clean" :local-file "resources/files/zookeeper/zookeeper-clean" :mode "755")
+    (remote-file "/etc/cron.d/zookeeper-clean" :content "01 04 * * * root /usr/local/bin/zookeeper-clean")))
+
+(defn zookeeper-server
+  []
   (server-spec
-   :roles [:zookeeper-master]
+   :roles [:zookeeper]
    :phases
    {:configure (plan-fn
                 (package "zookeeper")

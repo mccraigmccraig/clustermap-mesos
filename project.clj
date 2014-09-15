@@ -1,6 +1,7 @@
 (defproject clustermap-mesos "0.1.0-SNAPSHOT"
   :description "FIXME Pallet project for clustermap-mesos"
   :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/math.numeric-tower "0.0.4"]
                  [com.palletops/pallet "0.8.0-SNAPSHOT"] ;; "0.8.0-RC.9"
                  [com.palletops/pallet-jclouds "1.7.3"]
 

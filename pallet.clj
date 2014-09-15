@@ -4,12 +4,12 @@
  '[pallet.project.loader :refer [defproject]]
  '[clustermap-mesos.groups
    :refer [mesos-master-group
-           mesos-slave-es-data-group
-           mesos-slave-es-nodata-group]])
+           mesos-data-slave-group
+           mesos-nodata-slave-group]])
 
 (defproject clustermap-mesos
   :source-paths ["src"]
   :provider {}
-  :groups [mesos-master-group
-           mesos-slave-es-data-group
-           mesos-slave-es-nodata-group])
+  :groups [(mesos-master-group)
+           (mesos-data-slave-group)
+           (mesos-nodata-slave-group)])

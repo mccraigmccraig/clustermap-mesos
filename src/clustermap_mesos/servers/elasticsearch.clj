@@ -3,18 +3,19 @@
    [pallet.api :refer [server-spec plan-fn]]
    [pallet.actions :refer [package]]))
 
-(def elasticsearch-base-server
-  ^{:private true}
+(defn- elasticsearch-base-server
+  []
   (server-spec
    :phases
    {:configure (plan-fn
                 ;; Add your crate class here
                 )}))
 
-(def elasticsearch-master-server
+(defn elasticsearch-master-server
+  []
   (server-spec
    :roles [:elasticsearch-master]
-   :extends [elasticsearch-base-server]
+   :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
                 ;; Add your crate class here
@@ -22,9 +23,10 @@
                 ;; will need to fetch nodes with rolw :elasticsearch-master here
                 )}))
 
-(def elasticsearch-data-server
+(defn elasticsearch-data-server
+  []
   (server-spec
-   :extends [elasticsearch-base-server]
+   :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
                 ;; Add your crate class here
@@ -32,9 +34,10 @@
                 ;; will need to fetch nodes with rolw :elasticsearch-master here
                 )}))
 
-(def elasticsearch-nodata-server
+(defn elasticsearch-nodata-server
+  []
   (server-spec
-   :extends [elasticsearch-base-server]
+   :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
                 ;; Add your crate class here
