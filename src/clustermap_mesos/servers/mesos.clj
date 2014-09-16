@@ -8,6 +8,7 @@
    [pallet.node :refer [primary-ip private-ip]]
    [clustermap-mesos.servers.zookeeper :refer [zookeeper-server]]
    [clustermap-mesos.servers.docker :refer [docker-server]]
+   [clustermap-mesos.servers.logstash-forwarder :refer [logstash-forwarder-server]]
    [clustermap-mesos.servers.marathon
     :refer [marathon-master-server
             marathon-haproxy-configurator]]))
@@ -31,6 +32,7 @@
 (defn- mesos-base-server
   []
   (server-spec
+   :extends [(logstash-forwarder-server)]
    :phases
    {:configure (plan-fn
                 (package-source "mesosphere" :aptitude {:url "http://repos.mesosphere.io/ubuntu"
