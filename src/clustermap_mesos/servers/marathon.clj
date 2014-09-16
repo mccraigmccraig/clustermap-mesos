@@ -40,13 +40,13 @@
         marathon-master-ip-ports (str/join " " (for [ip marathon-master-ips] (str ip ":8080")))]
     (exec-script* (str "/opt/marathon/bin/haproxy-marathon-bridge install_haproxy_system " marathon-master-ip-ports))))
 
-(defplan enable-marathon-server
+(defplan enable-marathon-service
   []
   (let [node-ip (private-ip (target-node))
         marathon-master-ips (set (marathon-master-server-ips))
         ]
     (if (contains? marathon-master-ips node-ip)
-      (remote-file "/etc/init/marathon.override" :action :delete)
+      (remote-file "/etc/init/marathon.override" :action :delete :force true)
       (remote-file "/etc/init/marathon.override" :content "manual"))))
 
 (defn marathon-haproxy-configurator
@@ -56,7 +56,7 @@
    :phases
    {:configure (plan-fn
                 (package "haproxy")
-                (enable-marathon-server)
+                (enable-marathon-service)
                 (marathon-haproxy-configurator-config))}))
 
 (defn marathon-master-server
