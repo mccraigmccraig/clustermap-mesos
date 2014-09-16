@@ -14,7 +14,7 @@ dataDir=/var/lib/zookeeper
 clientPort=2181
 ")
 
-(defplan zookeeper-config
+(defplan ^:private zookeeper-config
   []
   (let [zookeeper-ips (->> (nodes-with-role :zookeeper) (map private-ip) sort)
         node-ip (private-ip (target-node))

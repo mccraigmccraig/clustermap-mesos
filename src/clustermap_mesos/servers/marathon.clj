@@ -23,9 +23,7 @@
                 (package "git")
                 (exec-script* "if ! test -d /opt/marathon ; then git clone https://github.com/mesosphere/marathon.git /opt/marathon ; fi")
                 (exec-script* "cd /opt/marathon ; git fetch --tags")
-                (exec-script* "cd /opt/marathon ; git checkout -B v0.7.0-RC2 tags/v0.7.0-RC2")
-                )
-    }))
+                (exec-script* "cd /opt/marathon ; git checkout -B v0.7.0-RC2 tags/v0.7.0-RC2"))}))
 
 (defn ^:private marathon-master-server-ips
   []
@@ -34,13 +32,13 @@
         marathon-master-ips (if (empty? marathon-master-ips) [node-ip] marathon-master-ips)]
     marathon-master-ips))
 
-(defplan marathon-haproxy-configurator-config
+(defplan ^:private marathon-haproxy-configurator-config
   []
   (let [marathon-master-ips (marathon-master-server-ips)
         marathon-master-ip-ports (str/join " " (for [ip marathon-master-ips] (str ip ":8080")))]
     (exec-script* (str "/opt/marathon/bin/haproxy-marathon-bridge install_haproxy_system " marathon-master-ip-ports))))
 
-(defplan enable-marathon-service
+(defplan ^:private enable-marathon-service
   []
   (let [node-ip (private-ip (target-node))
         marathon-master-ips (set (marathon-master-server-ips))
@@ -49,7 +47,7 @@
       (remote-file "/etc/init/marathon.override" :action :delete :force true)
       (remote-file "/etc/init/marathon.override" :content "manual"))))
 
-(defn marathon-haproxy-configurator
+(defn marathon-haproxy-server
   []
   (server-spec
    :extends [(marathon-base-server)]

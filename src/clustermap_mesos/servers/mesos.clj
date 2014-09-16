@@ -11,7 +11,7 @@
    [clustermap-mesos.servers.logstash-forwarder :refer [logstash-forwarder-server]]
    [clustermap-mesos.servers.marathon
     :refer [marathon-master-server
-            marathon-haproxy-configurator]]))
+            marathon-haproxy-server]]))
 
 (defn ^:private zookeeper-server-ips
   []
@@ -20,7 +20,7 @@
         zookeeper-ips (if (empty? zookeeper-ips) [node-ip] zookeeper-ips)]
     zookeeper-ips))
 
-(defplan mesos-base-config
+(defplan ^:private mesos-base-config
   []
   (let [zookeeper-ips (zookeeper-server-ips)
         zk-ip-ports (->> zookeeper-ips
@@ -44,7 +44,7 @@
                 (package "mesos")
                 (mesos-base-config))}))
 
-(defplan mesos-master-config
+(defplan ^:private mesos-master-config
   [cluster-name]
   (let [node-ip (private-ip (target-node))
         zookeeper-ips (zookeeper-server-ips) ]
@@ -60,14 +60,14 @@
      :extends [(mesos-base-server)
                (zookeeper-server)
                (marathon-master-server)
-               (marathon-haproxy-configurator)]
+               (marathon-haproxy-server)]
      :phases
      {:configure (plan-fn
                   (remote-file "/etc/init/mesos-slave.override" :content "manual")
                   (mesos-master-config cluster-name)
                   (service "mesos-master" :action :restart :service-impl :upstart))}))
 
-(defplan mesos-slave-config
+(defplan ^:private mesos-slave-config
   []
   (let [node-ip (private-ip (target-node))]
     (remote-file "/etc/mesos-slave/ip" :content node-ip)
@@ -80,7 +80,7 @@
   (server-spec
    :extends [(mesos-base-server)
              (docker-server)
-             (marathon-haproxy-configurator)]
+             (marathon-haproxy-server)]
    :phases
    {:configure (plan-fn
                 (remote-file "/etc/init/mesos-master.override" :content "manual")
