@@ -1,6 +1,7 @@
 (ns clustermap-mesos.servers.base
   (:require
    [pallet.api :refer [server-spec plan-fn]]
+   [pallet.actions :refer [package]]
    [pallet.crate.automated-admin-user :refer [automated-admin-user]]))
 
 (defn  base-server
@@ -8,4 +9,7 @@
   []
   (server-spec
    :phases
-   {:bootstrap (plan-fn (automated-admin-user))}))
+   {:bootstrap (plan-fn
+                (automated-admin-user))
+    :configure (plan-fn
+                (package "openntpd"))}))
