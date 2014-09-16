@@ -2,7 +2,7 @@
   (:require
    [clojure.string :as str]
    [pallet.api :refer [server-spec plan-fn]]
-   [pallet.actions :refer [package-source package-manager package remote-file plan-when-not exec-script*]]
+   [pallet.actions :refer [package-source package-manager package remote-file plan-when-not exec-script* service]]
    [pallet.crate :refer [defplan nodes-with-role target-node]]
    [pallet.node :refer [primary-ip private-ip]]))
 
@@ -44,7 +44,8 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master true :data false))}))
+                (elasticsearch-config cluster-name :master true :data false)
+                (service "elasticsearch" :action :restart))}))
 
 (defn elasticsearch-data-server
   [cluster-name]
@@ -52,7 +53,8 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master false :data true))}))
+                (elasticsearch-config cluster-name :master false :data true)
+                (service "elasticsearch" :action :restart))}))
 
 (defn elasticsearch-nodata-server
   [cluster-name]
@@ -60,4 +62,5 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master false :data false))}))
+                (elasticsearch-config cluster-name :master false :data false)
+                (service "elasticsearch" :action :restart))}))
