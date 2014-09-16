@@ -2,9 +2,13 @@
   (:require
    [clojure.string :as str]
    [pallet.api :refer [server-spec plan-fn]]
-   [pallet.actions :refer [package-source package-manager package remote-file]]
+   [pallet.actions :refer [package-source package-manager package remote-file plan-when-not exec-script*]]
    [pallet.crate :refer [defplan nodes-with-role target-node]]
    [pallet.node :refer [primary-ip private-ip]]))
+
+(defplan ^:private install-marvel
+  []
+  (exec-script* "if ! test -e /usr/share/elasticsearch/plugins/marvel ; then cd /usr/share/elasticsearch ; ./bin/plugin -i elasticsearch/marvel/latest ; fi"))
 
 (defn- elasticsearch-base-server
   []
@@ -16,7 +20,9 @@
                                                            :scopes ["main"]
                                                            :key-url "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"})
                 (package-manager :update)
-                (package "elasticsearch"))}))
+                (package "elasticsearch")
+
+                (install-marvel))}))
 
 (defplan elasticsearch-config
   [cluster-name & {:keys [master data]}]
