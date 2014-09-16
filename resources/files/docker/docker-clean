@@ -1,0 +1,13 @@
+i#!/bin/bash
+
+# remove all container stopped) containers
+EXITED=$(docker ps --all | grep Exited | awk '{print $1}')
+if test -n "${EXITED}" ; then
+  docker rm $EXITED
+fi
+
+# remove all untagged images
+UNUSED=$(docker images | grep '^<none>' | awk '{print $3}')
+if test -n "${UNUSED}" ; then
+  docker rmi $UNUSED
+fi
