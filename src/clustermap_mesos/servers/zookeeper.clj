@@ -4,7 +4,7 @@
    [pallet.api :refer [server-spec plan-fn]]
    [pallet.node :refer [primary-ip private-ip]]
    [pallet.crate :refer [defplan nodes-with-role target-node]]
-   [pallet.actions :refer [package remote-file remote-file-content with-service-restart]]))
+   [pallet.actions :refer [package remote-file remote-file-content service]]))
 
 (def ^:private zookeeper-config-base
   "tickTime=2000
@@ -37,5 +37,5 @@ clientPort=2181
    :phases
    {:configure (plan-fn
                 (package "zookeeper")
-                (with-service-restart "zookeeper"
-                  (zookeeper-config)))}))
+                (zookeeper-config)
+                (service "zookeeper" :action :restart :service-impl :upstart))}))
