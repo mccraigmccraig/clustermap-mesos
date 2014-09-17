@@ -20,6 +20,7 @@
                                                            :scopes ["main"]
                                                            :key-url "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"})
                 (package-manager :update)
+                (package "openjdk-7-jdk")
                 (package "elasticsearch")
 
                 (install-marvel))}))
@@ -35,7 +36,10 @@
         config-yml (str config-yml "node.data: " (boolean data) "\n")
         config-yml (str config-yml "discovery.zen.ping.multicast.enabled: false\n")
         config-yml (str config-yml "discovery.zen.ping.unicast.hosts: [" elasticsearch-master-ip-list "]\n")]
-    (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)))
+    (remote-file "/etc/init/elasticsearch.conf" :local-file "resources/files/elasticsearch/elasticsearch.conf")
+    (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)
+    (exec-script* "update-rc.d -f elasticsearch remove")
+    (service "elasticsearch" :action :restart :service-impl :upstart)))
 
 (defn elasticsearch-master-server
   [cluster-name]
@@ -44,8 +48,7 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (with-service-restart "elasticsearch"
-                  (elasticsearch-config cluster-name :master true :data false)))}))
+                (elasticsearch-config cluster-name :master true :data false))}))
 
 (defn elasticsearch-data-server
   [cluster-name]
@@ -53,8 +56,7 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (with-service-restart "elasticsearch"
-                  (elasticsearch-config cluster-name :master false :data true)))}))
+                (elasticsearch-config cluster-name :master false :data true))}))
 
 (defn elasticsearch-nodata-server
   [cluster-name]
@@ -62,5 +64,4 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (with-service-restart "elasticsearch"
-                  (elasticsearch-config cluster-name :master false :data false)))}))
+                (elasticsearch-config cluster-name :master false :data false))}))
