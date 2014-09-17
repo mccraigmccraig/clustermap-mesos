@@ -62,7 +62,7 @@
   (server-spec
    :roles [:marathon-master]
    :extends [(marathon-base-server)
-             (marathon-haproxy-configurator)]
+             (marathon-haproxy-server)]
    :phases
    {:configure (plan-fn
                 (service "marathon" :action :restart :service-impl :upstart))}))
