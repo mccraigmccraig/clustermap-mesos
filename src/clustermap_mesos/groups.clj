@@ -44,10 +44,10 @@
   (require '[clustermap-mesos.groups :refer :all] :reload)
 
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
-  (converge {(mesos-master-group) 1
-             (mesos-nodata-slave-group) 1
-             (mesos-data-slave-group) 1}
-            :compute mesos-eu-west-1)
+  (def s (converge {(mesos-master-group) 1
+                    (mesos-nodata-slave-group) 1
+                    (mesos-data-slave-group) 1}
+                   :compute mesos-eu-west-1))
   (converge {(mesos-master-group) 1}
             :compute mesos-eu-west-1)
 
