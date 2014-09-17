@@ -3,7 +3,7 @@
    [clojure.string :as str]
    [clojure.math.numeric-tower :as math]
    [pallet.api :refer [server-spec plan-fn]]
-   [pallet.actions :refer [exec-script* remote-file package package-source package-manager service]]
+   [pallet.actions :refer [exec-script* remote-file directory package package-source package-manager service]]
    [pallet.crate :refer [defplan nodes-with-role target-node]]
    [pallet.node :refer [primary-ip private-ip]]
    [clustermap-mesos.servers.zookeeper :refer [zookeeper-server]]
@@ -20,14 +20,42 @@
         zookeeper-ips (if (empty? zookeeper-ips) [node-ip] zookeeper-ips)]
     zookeeper-ips))
 
+(defn ^:private zookeeper-servers
+  []
+  (->> (zookeeper-server-ips)
+       (map (fn [ip] (str ip ":2181")))
+       (str/join ",")))
+
+(defn ^:private zookeeper-url
+  []
+  (str "zk://" (zookeeper-servers) "/mesos"))
+
 (defplan ^:private mesos-base-config
   []
-  (let [zookeeper-ips (zookeeper-server-ips)
-        zk-ip-ports (->> zookeeper-ips
-                         (map (fn [ip] (str ip ":2181")))
-                         (str/join ","))
-        zk (str "zk://" zk-ip-ports "/mesos")]
-    (remote-file "/etc/mesos/zk" :content zk)))
+  (remote-file "/etc/mesos/zk" :content (zookeeper-url)))
+
+(def chronos-static-config
+  "scheduleHorizonSeconds: 60
+zookeeperStateZnode: \"/airbnb/service/chronos/state\"
+zookeeperLeaderZnode: \"/airbnb/service/chronos/leader\"
+zookeeperCandidateZnode: \"/airbnb/service/chronos/candidate\"
+
+http:
+
+    adminPort: 4401
+    port: 4400
+    rootPath: \"/scheduler/*\"
+
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO")
+
+(defplan ^:private chronos-config
+  []
+  (let [config-str (str "master: " (zookeeper-url) "\nzookeeperServers: " (zookeeper-servers) "\n" chronos-static-config)]
+    (directory "/etc/chronos" :action :create)
+    (remote-file "/etc/chronos/local_cluster_scheduler.yml" :content config-str)))
 
 (defn- mesos-base-server
   []
@@ -85,4 +113,5 @@
    {:configure (plan-fn
                 (remote-file "/etc/init/mesos-master.override" :content "manual")
                 (mesos-slave-config)
+                (chronos-config)
                 (service "mesos-slave" :action :restart :service-impl :upstart))}))
