@@ -77,7 +77,7 @@ logging:
   (let [node-ip (private-ip (target-node))
         zookeeper-ips (zookeeper-server-ips) ]
     (remote-file "/etc/mesos-master/work_dir" :content "/var/lib/mesos")
-    (remote-file "/etc/mesos-master/quorum" :content (math/ceil (/ (count zookeeper-ips) 2)))
+    (remote-file "/etc/mesos-master/quorum" :content (math/ceil (/ (inc (count zookeeper-ips)) 2)))
     (remote-file "/etc/mesos-master/ip" :content node-ip)
     (remote-file "/etc/mesos-master/cluster" :content cluster-name)))
 
