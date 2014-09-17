@@ -24,7 +24,7 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-data-server "clustermap")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
     ;; :count 3
     ))
 
@@ -34,7 +34,7 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-nodata-server "clustermap")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.medium" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
     ;; :count 3
     ))
 
@@ -44,9 +44,9 @@
   (require '[clustermap-mesos.groups :refer :all] :reload)
 
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
-  (def s (converge {(mesos-master-group) 1
-                    (mesos-nodata-slave-group) 1
-                    (mesos-data-slave-group) 1}
+  (def s (converge {(mesos-master-group) 3
+                    (mesos-data-slave-group) 3
+                    (mesos-nodata-slave-group) 0}
                    :compute mesos-eu-west-1))
   (converge {(mesos-master-group) 1}
             :compute mesos-eu-west-1)
