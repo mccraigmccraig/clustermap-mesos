@@ -1,4 +1,4 @@
-i#!/bin/bash
+#!/bin/bash
 
 # remove all container stopped) containers
 EXITED=$(docker ps --all | grep Exited | awk '{print $1}')

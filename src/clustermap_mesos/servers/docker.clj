@@ -1,7 +1,7 @@
 (ns clustermap-mesos.servers.docker
   (:require
    [pallet.api :refer [server-spec plan-fn]]
-   [pallet.actions :refer [package-source package-manager package]]))
+   [pallet.actions :refer [package-source package-manager package remote-file]]))
 
 
 (defn docker-server
@@ -18,4 +18,4 @@
                 (package "lxc-docker")
 
                 (remote-file "/usr/local/bin/docker-clean" :local-file "resources/files/docker/docker-clean" :mode "755")
-                (remote-file "/etc/cron.d/docker-clean" :content "01 03 * * * root /usr/local/bin/zookeeper-clean")))}))
+                (remote-file "/etc/cron.d/docker-clean" :content "01 03 * * * root /usr/local/bin/docker-clean"))}))
