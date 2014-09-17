@@ -20,7 +20,11 @@
                                      :subnet-id subnet-id
                                      :groups [security-group-id]
                                      :associate-public-ip-address true
-                                     :delete-on-termination true}]}}))
+                                     :delete-on-termination true}]
+               :block-device-mappings [{:device-name "/dev/sda1"
+                                        :ebs {:volume-size 100
+                                              :delete-on-termination true
+                                              :volume-type "gp2"}}]}}))
 
 (defn eu-west-ubuntu-1404-pv-ebs-node
   [hardware location subnet-id security-group-id key-name]
@@ -40,4 +44,8 @@
                                      :subnet-id subnet-id
                                      :groups [security-group-id]
                                      :associate-public-ip-address true
-                                     :delete-on-termination true}]}}))
+                                     :delete-on-termination true}]
+               :block-device-mappings [{:device-name "/dev/sda1"
+                                        :ebs {:volume-size 200
+                                              :delete-on-termination true
+                                              :volume-type "gp2"}}]}}))
