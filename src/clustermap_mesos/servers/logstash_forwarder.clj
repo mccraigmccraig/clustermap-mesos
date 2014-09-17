@@ -15,12 +15,17 @@
                 (package "golang")
                 (exec-script* "gem install fpm")
 
+                ;; download unpack and build lumberjack
                 (directory "/opt" :action :create)
-                (remote-file "/etc/lumberjack.conf" :local-file "resources/files/logstash_forwarder/lumberjack.conf")
 
                 (remote-file "/opt/logstash-forwarder-0.3.1.zip" :url "https://github.com/elasticsearch/logstash-forwarder/archive/v0.3.1.zip")
-                (exec-script* "cd /opt ; unzip -n logstash-forwarder-0.3.1.zip")
 
+                (exec-script* "cd /opt ; if ! test -e logstash-forwarder-0.3.1 ; then unzip -n logstash-forwarder-0.3.1.zip ; fi")
                 (exec-script* "cd /opt/logstash-forwarder-0.3.1 ; if ! test -e lumberjack_0.3.1_amd64.deb ; then PATH=/usr/local/bin:$PATH make deb ; dpkg -i lumberjack_0.3.1_amd64.deb ;fi")
-                (with-service-restart "lumberjack"
-                  (remote-file "/etc/lumberjack.conf" :local-file "resources/files/logstash_forwarder/lumberjack.conf")))}))
+
+                ;; configure and start
+                (remote-file "/etc/lumberjack.conf" :local-file "resources/files/logstash_forwarder/lumberjack.conf")
+                (remote-file "/etc/init/lumberjack.conf" :local-file "resources/files/logstash_forwarder/upstart_lumberjack.conf")
+                (exec-script* "update-rc.d -f lumberjack remove")
+
+                (service "lumberjack" :action :restart :service-impl :upstart))}))
