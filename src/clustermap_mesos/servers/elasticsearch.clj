@@ -26,7 +26,7 @@
                 (install-marvel))}))
 
 (defplan ^:private elasticsearch-config
-  [cluster-name & {:keys [master data]}]
+  [cluster-name mem & {:keys [master data]}]
   (let [node-ip (private-ip (target-node))
         elasticsearch-master-ips (->> (nodes-with-role :elasticsearch-master) (map private-ip) sort)
         elasticsearch-master-ips (if (empty? elasticsearch-master-ips) [node-ip] elasticsearch-master-ips)
@@ -38,30 +38,32 @@
         config-yml (str config-yml "discovery.zen.ping.unicast.hosts: [" elasticsearch-master-ip-list "]\n")]
     (remote-file "/etc/init/elasticsearch.conf" :local-file "resources/files/elasticsearch/elasticsearch.conf")
     (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)
+    (remote-file "/usr/share/elasticsearch/bin/elasticsearch.in.sh" :local-file "resources/files/elasticsearch/elasticsearch.in.sh" :mode "755")
+    (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
     (exec-script* "update-rc.d -f elasticsearch remove")
     (service "elasticsearch" :action :restart :service-impl :upstart)))
 
 (defn elasticsearch-master-server
-  [cluster-name]
+  [cluster-name mem]
   (server-spec
    :roles [:elasticsearch-master]
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master true :data false))}))
+                (elasticsearch-config cluster-name mem :master true :data false))}))
 
 (defn elasticsearch-data-server
-  [cluster-name]
+  [cluster-name mem]
   (server-spec
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master false :data true))}))
+                (elasticsearch-config cluster-name mem :master false :data true))}))
 
 (defn elasticsearch-nodata-server
-  [cluster-name]
+  [cluster-name mem]
   (server-spec
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name :master false :data false))}))
+                (elasticsearch-config cluster-name mem :master false :data false))}))
