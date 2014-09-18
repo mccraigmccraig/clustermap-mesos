@@ -26,9 +26,13 @@
                 (package-manager :update)
                 (package "openjdk-7-jdk")
                 (package "elasticsearch")
+                (package "python-pip")
 
                 (install-marvel)
-                (install-cloud-aws))}))
+                (install-cloud-aws)
+                (exec-script* "pip install elasticsearch-curator")
+                (remote-file "/usr/local/bin/elasticsearch-clean" :local-file "resources/files/elasticsearch/elasticsearch-clean" :mode "755")
+                (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01 * * * root /usr/local/bin/elasticsearch-clean"))}))
 
 (defplan ^:private elasticsearch-config
   [cluster-name mem & {:keys [master data]}]
