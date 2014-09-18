@@ -14,7 +14,7 @@
               :extends [(base-server)
                         (mesos-master-server "clustermap-mesos")
                         (elasticsearch-master-server "clustermap" "256m")]
-    :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
+    :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
     ;; :count 3
     ))
 
@@ -24,7 +24,7 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-data-server "clustermap" "2g")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
     ;; :count 3
     ))
 
@@ -34,7 +34,7 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-nodata-server "clustermap" "512m")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey")
+    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
     ;; :count 3
     ))
 

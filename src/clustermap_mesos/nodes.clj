@@ -3,7 +3,7 @@
    [pallet.api :refer [node-spec]]))
 
 (defn eu-west-ubuntu-1404-hvm-ebs-node
-  [hardware location subnet-id security-group-id key-name]
+  [hardware location subnet-id security-group-id key-name iam-instance-profile-name]
   (node-spec
    :image {:image-id "ami-96c41ce1";; alestic eu-west-1 ubuntu 14.04 HVM EBS-SSD
            :os-family :ubuntu
@@ -24,10 +24,11 @@
                :block-device-mappings [{:device-name "/dev/sda1"
                                         :ebs {:volume-size 100
                                               :delete-on-termination true
-                                              :volume-type "gp2"}}]}}))
+                                              :volume-type "gp2"}}]
+               :iam-instance-profile {:name iam-instance-profile-name}}}))
 
 (defn eu-west-ubuntu-1404-pv-ebs-node
-  [hardware location subnet-id security-group-id key-name]
+  [hardware location subnet-id security-group-id key-name iam-instance-profile-name]
   (node-spec
    :image {:image-id "ami-aec41cd9"  ;; alestic eu-west-1 ubuntu 14.04 PV EBS-SSD
            :os-family :ubuntu
@@ -48,4 +49,5 @@
                :block-device-mappings [{:device-name "/dev/sda1"
                                         :ebs {:volume-size 200
                                               :delete-on-termination true
-                                              :volume-type "gp2"}}]}}))
+                                              :volume-type "gp2"}}]
+               :iam-instance-profile {:name iam-instance-profile-name}}}))
