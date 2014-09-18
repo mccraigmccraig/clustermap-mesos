@@ -10,6 +10,10 @@
   []
   (exec-script* "if ! test -e /usr/share/elasticsearch/plugins/marvel ; then cd /usr/share/elasticsearch ; ./bin/plugin -i elasticsearch/marvel/latest ; fi"))
 
+(defplan ^:private install-cloud-aws
+  []
+  (exec-script* "if ! test -e /usr/share/elasticsearch/plugins/cloud-aws ; then cd /usr/share/elasticsearch ; ./bin/plugin -i elasticsearch/elasticsearch-cloud-aws/2.3.0 ; fi"))
+
 (defn- elasticsearch-base-server
   []
   (server-spec
@@ -23,7 +27,8 @@
                 (package "openjdk-7-jdk")
                 (package "elasticsearch")
 
-                (install-marvel))}))
+                (install-marvel)
+                (install-cloud-aws))}))
 
 (defplan ^:private elasticsearch-config
   [cluster-name mem & {:keys [master data]}]
