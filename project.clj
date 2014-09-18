@@ -2,12 +2,12 @@
   :description "FIXME Pallet project for clustermap-mesos"
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
-                 [com.palletops/pallet "0.8.0-SNAPSHOT"] ;; "0.8.0-RC.9"
+                 [mccraigmccraig/pallet "0.8.0-SNAPSHOT"] ;; "0.8.0-RC.9"
                  [com.palletops/pallet-jclouds "1.7.3"]
 
                  ;; direct aws provider...
-                 [com.palletops/pallet-aws "0.2.4-SNAPSHOT"]
-                 [com.palletops/awaze "0.1.2-SNAPSHOT" :exclusions [[commons-logging] [commons-codec]]]
+                 [mccraigmccraig/pallet-aws "0.2.4-SNAPSHOT" :exclusions [[com.palletops/awaze]]]
+                 [mccraigmccraig/awaze "0.1.2-SNAPSHOT" :exclusions [[commons-logging] [commons-codec]]]
                  [org.slf4j/jcl-over-slf4j "1.7.5"]
 
                  ;; To get started we include all jclouds compute providers.
