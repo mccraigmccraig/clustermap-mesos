@@ -1,7 +1,10 @@
 (ns clustermap-mesos.groups
   (:require
-   [pallet.api :refer [group-spec server-spec node-spec plan-fn]]
+   [pallet.api :refer [group-spec server-spec node-spec plan-fn group-nodes compute-service]]
    [pallet.actions :refer [package]]
+   [pallet.configure :refer [pallet-config compute-service-properties]]
+   pallet.node
+   [com.palletops.awaze.elasticloadbalancing :as elb]
    [clustermap-mesos.servers.base :refer [base-server]]
    [clustermap-mesos.servers.mesos :refer [mesos-master-server mesos-slave-server]]
    [clustermap-mesos.servers.elasticsearch
@@ -38,6 +41,31 @@
     ;; :count 3
     ))
 
+(defn- make-sequential
+  [x]
+  (cond
+   (nil? x) nil
+   (sequential? x) x
+   true [x]))
+
+(defn- add-nodes-to-aws-elasticloadbalancers
+  [compute-service-id group-specs load-balancer-names]
+  (let [nodes (group-nodes (compute-service compute-service-id) (make-sequential group-specs))
+        instance-ids (->> nodes (map :node) (map pallet.node/id) (map (fn [node-id] {:instance-id node-id})))
+
+        load-balancer-names (make-sequential load-balancer-names)
+
+        {:keys [identity credential endpoint provider]} (compute-service-properties (pallet-config) compute-service-id)
+        credentials {:access-key identity :secret-key credential :endpoint endpoint}]
+
+    (doseq [load-balancer-name load-balancer-names]
+      (elb/register-instances-with-load-balancer credentials
+                                                 {:load-balancer-name load-balancer-name
+                                                  :instances instance-ids}))))
+
+(defn add-slaves-to-aws-elasticloadbalancers
+  [compute-service-id load-balancer-names]
+  (add-nodes-to-aws-elasticloadbalancers compute-service-id [(mesos-data-slave-group) (mesos-nodata-slave-group)] load-balancer-names))
 
 (comment
   (require '[pallet.api :refer :all])
