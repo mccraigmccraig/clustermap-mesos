@@ -18,5 +18,41 @@ there are some infrastructure apps defined in apps.sh which will run on mesos/ma
 * logstash : indexes log entries from logstash-forwarder in elasticsearch
 * kibana : dashboard for querying logstash indexes
 
+you will need a `~/.pallet/config.clj` file defining compute services. this one defines an AWS service and a
+service based on some pre-existing nodes
+
+```
+(defpallet
+  :services
+  {:mesos-eu-west-1 {:provider "pallet-ec2"
+                     :identity "<aws-access-key>",
+                     :credential "<aws-access-secret>"
+                     :endpoint "eu-west-1"}
+
+   :mesos1-nodes {:provider "node-list"
+                  :node-list [["master0" "mesos-master" "master0.mesos1.trampolinesystems.com" :ubuntu]
+                              ["slave0" "mesos-data-slave" "slave0.mesos1.trampolinesystems.com" :ubuntu]
+                              ["slave1" "mesos-data-slave" "slave1.mesos1.trampolinesystems.com" :ubuntu]
+                              ["slave2" "mesos-nodata-slave" "slave2.mesos1.trampolinesystems.com" :ubuntu]]
+                  :environment {}}
+```
+
+once you have defined a compute service then you can configure groups of nodes within that compute service. e.g. :
+
+```
+(require '[pallet.api :refer :all])
+(require '[clustermap-mesos.groups :refer :all] :reload)
+(def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
+
+(converge {(mesos-master-group) 3
+           (mesos-data-slave-group) 3
+           (mesos-nodata-slave-group) 2}
+          :compute mesos-eu-west-1)
+
+
+```
+
+if you use an AWS service you will need to edit `clustermap-mesos.groups` and change the VPC subnet, security-group, keypair and IAM roles
+
 
 Copyright © Trampoline Systems Limited
