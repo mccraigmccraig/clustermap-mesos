@@ -76,7 +76,5 @@
                     (mesos-data-slave-group) 3
                     (mesos-nodata-slave-group) 0}
                    :compute mesos-eu-west-1))
-  (converge {(mesos-master-group) 1}
-            :compute mesos-eu-west-1)
-
+  (add-slaves-to-aws-elasticloadbalancers :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
   )
