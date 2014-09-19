@@ -50,7 +50,10 @@
     (remote-file "/usr/share/elasticsearch/bin/elasticsearch.in.sh" :local-file "resources/files/elasticsearch/elasticsearch.in.sh" :mode "755")
     (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
     (exec-script* "update-rc.d -f elasticsearch remove")
-    (service "elasticsearch" :action :restart :service-impl :upstart)))
+    (service "elasticsearch" :action :restart :service-impl :upstart)
+
+    (remote-file "/usr/local/bin/elasticsearch-register-s3-repository" :local-file "resources/files/elasticsearch/elasticsearch-register-s3-repository" :mode "755")
+    (remote-file "/usr/local/bin/elasticsearch-snapshot" :local-file "resources/files/elasticsearch/elasticsearch-snapshot" :mode "755")))
 
 (defn elasticsearch-master-server
   [cluster-name mem]

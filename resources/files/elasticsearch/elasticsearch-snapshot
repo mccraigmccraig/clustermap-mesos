@@ -1,0 +1,4 @@
+#!/bin/bash
+# daily timestamp is compatible with curator
+DATESTAMP=$(date +%Y.%m.%d)
+curl -XPUT "localhost:9200/_snapshot/clustermap-es-snapshots/snapshot-${DATESTAMP}?wait_for_completion=true"

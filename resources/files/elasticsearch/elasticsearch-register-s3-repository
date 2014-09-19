@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ "x${1}" = "x" ]; then
+  echo "usage: ${0} <bucket-name>"
+fi
+
+DOC=$(cat <<EOF
+{
+    "type": "s3",
+    "settings": {
+        "bucket": "${1}",
+        "region": "eu-west-1"
+    }
+}
+EOF
+)
+
+curl -XPUT 'http://localhost:9200/_snapshot/clustermap-es-snapshots' -d "$DOC"

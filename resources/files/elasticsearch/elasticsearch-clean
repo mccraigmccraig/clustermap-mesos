@@ -9,3 +9,6 @@ curator bloom  --older-than 7
 curator delete --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --older-than 7
 curator delete --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --disk-space 10
 curator bloom  --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --older-than 7
+
+# delete old snapshots
+curator snapshot --prefix "snapshot-" --repository clustermap-es-snapshots --delete-older-than 7
