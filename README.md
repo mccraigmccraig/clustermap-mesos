@@ -1,6 +1,6 @@
 # clustermap-mesos
 
-A pallet project to manage a mesos cluster for clustermap, with mesos, marathon docker and elasticsearch
+A pallet project to manage a mesos cluster for clustermap, with mesos, marathon, docker and elasticsearch
 
 You get :
 
@@ -52,7 +52,7 @@ once you have defined a compute service then you can configure groups of nodes w
 
 ```
 
-if you use an AWS service you will need to edit `clustermap-mesos.groups` and change the VPC subnet, security-group, keypair and IAM roles
+if you use an AWS service you will need to edit `clustermap-mesos.groups` and change the VPC subnet, security-group, keypair and IAM roles... i'll get around to abstracting out this config at some point, or maybe putting all the `clustermap-mesos.servers.*` namespaces into a separate repo
 
 
 Copyright © Trampoline Systems Limited

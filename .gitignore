@@ -17,6 +17,5 @@ pom.xml.asc
 /dump
 /data
 /tmp
-*-*-*-*
 /.nrepl-port
 /logs
