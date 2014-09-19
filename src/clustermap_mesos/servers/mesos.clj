@@ -92,8 +92,9 @@ logging:
      :phases
      {:configure (plan-fn
                   (remote-file "/etc/init/mesos-slave.override" :content "manual")
-                  (mesos-master-config cluster-name)
-                  (service "mesos-master" :action :restart :service-impl :upstart))}))
+                  (mesos-master-config cluster-name))
+      :restart (plan-fn
+                (service "mesos-master" :action :restart :service-impl :upstart))}))
 
 (defplan ^:private mesos-slave-config
   []
@@ -113,5 +114,6 @@ logging:
    {:configure (plan-fn
                 (remote-file "/etc/init/mesos-master.override" :content "manual")
                 (mesos-slave-config)
-                (chronos-config)
-                (service "mesos-slave" :action :restart :service-impl :upstart))}))
+                (chronos-config))
+    :restart (plan-fn
+              (service "mesos-slave" :action :restart :service-impl :upstart))}))
