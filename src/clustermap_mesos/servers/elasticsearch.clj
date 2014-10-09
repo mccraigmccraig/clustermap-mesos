@@ -47,8 +47,8 @@
         config-yml (str config-yml "discovery.zen.ping.unicast.hosts: [" elasticsearch-master-ip-list "]\n")]
     (remote-file "/etc/init/elasticsearch.conf" :local-file "resources/files/elasticsearch/elasticsearch.conf")
     (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)
-    (remote-file "/usr/share/elasticsearch/bin/elasticsearch.in.sh" :local-file "resources/files/elasticsearch/elasticsearch.in.sh" :mode "755")
     (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
+    (exec-script* "if ! `grep /etc/default/elasticsearch /usr/share/elasticsearch/bin/elasticsearch.in.sh` ; then mv /usr/share/elasticsearch/bin/elasticsearch.in.sh /usr/share/elasticsearch/bin/elasticsearch.in.sh.org ; echo -e '#!/bin/bash\n. /etc/default/elasticsearch\n\n' > /usr/share/elasticsearch/bin/elasticsearch.in.sh ; cat /usr/share/elasticsearch/bin/elasticsearch.in.sh.org >> /usr/share/elasticsearch/bin/elasticsearch.in.sh ; fi")
     (exec-script* "update-rc.d -f elasticsearch remove")
     (service "elasticsearch" :action :restart :service-impl :upstart)
 
