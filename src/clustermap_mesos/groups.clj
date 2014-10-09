@@ -26,7 +26,7 @@
   (group-spec "mesos-data-slave"
               :extends [(base-server)
                         (mesos-slave-server)
-                        (elasticsearch-data-server "clustermap" "2g")]
+                        (elasticsearch-data-server "clustermap" "3g")]
     :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
     ;; :count 3
     ))
@@ -70,6 +70,7 @@
 (comment
   (require '[pallet.api :refer :all])
   (require '[clustermap-mesos.groups :refer :all] :reload)
+  (require '[pallet.actions :as actions])
 
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
   (def s (converge {(mesos-master-group) 3
@@ -77,4 +78,16 @@
                     (mesos-nodata-slave-group) 0}
                    :compute mesos-eu-west-1))
   (add-slaves-to-aws-elasticloadbalancers :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
+
+  ;; general lift : upgrade and configure everything
+  (do (lift [(mesos-master-group) (mesos-data-slave-group) (mesos-nodata-slave-group)]
+            :compute mesos-eu-west-1)
+      nil)
+
+  ;; upgrade a package (for shellshock patches in this case)
+  (do (lift [(mesos-master-group) (mesos-data-slave-group) (mesos-nodata-slave-group)]
+            :compute mesos-eu-west-1
+            :phase (plan-fn (actions/package-manager :update)
+                            (actions/package "bash" :action :upgrade)))
+      nil)
   )
