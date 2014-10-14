@@ -32,7 +32,9 @@
                 (install-cloud-aws)
                 (exec-script* "pip install elasticsearch-curator")
                 (remote-file "/usr/local/bin/elasticsearch-clean" :local-file "resources/files/elasticsearch/elasticsearch-clean" :mode "755")
-                (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01 * * * root /usr/local/bin/elasticsearch-clean"))}))
+                (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01 * * * root /usr/local/bin/elasticsearch-clean")
+                (exec-script* "sysctl -w vm.max_map_count=262144")
+                (exec-script* "if ! grep ^vm.max_map_count /etc/sysctl.conf ; then cp /etc/sysctl.conf /etc/sysctl.conf.org.elasticsearch ; echo -e '\nvm.max_map_count=262144' >> /etc/sysctl.conf ; fi"))}))
 
 (defplan ^:private elasticsearch-config
   [cluster-name mem & {:keys [master data]}]
@@ -48,7 +50,7 @@
     (remote-file "/etc/init/elasticsearch.conf" :local-file "resources/files/elasticsearch/elasticsearch.conf")
     (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)
     (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
-    (exec-script* "if ! `grep /etc/default/elasticsearch /usr/share/elasticsearch/bin/elasticsearch.in.sh` ; then mv /usr/share/elasticsearch/bin/elasticsearch.in.sh /usr/share/elasticsearch/bin/elasticsearch.in.sh.org ; echo -e '#!/bin/bash\n. /etc/default/elasticsearch\n\n' > /usr/share/elasticsearch/bin/elasticsearch.in.sh ; cat /usr/share/elasticsearch/bin/elasticsearch.in.sh.org >> /usr/share/elasticsearch/bin/elasticsearch.in.sh ; fi")
+    (exec-script* "if ! grep /etc/default/elasticsearch /usr/share/elasticsearch/bin/elasticsearch.in.sh ; then mv /usr/share/elasticsearch/bin/elasticsearch.in.sh /usr/share/elasticsearch/bin/elasticsearch.in.sh.org ; echo -e '#!/bin/bash\n. /etc/default/elasticsearch\n\n' > /usr/share/elasticsearch/bin/elasticsearch.in.sh ; cat /usr/share/elasticsearch/bin/elasticsearch.in.sh.org >> /usr/share/elasticsearch/bin/elasticsearch.in.sh ; fi")
     (exec-script* "update-rc.d -f elasticsearch remove")
     (service "elasticsearch" :action :restart :service-impl :upstart)
 
