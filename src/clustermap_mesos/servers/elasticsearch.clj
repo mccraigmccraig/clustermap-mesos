@@ -42,7 +42,8 @@
         elasticsearch-master-ips (->> (nodes-with-role :elasticsearch-master) (map private-ip) sort)
         elasticsearch-master-ips (if (empty? elasticsearch-master-ips) [node-ip] elasticsearch-master-ips)
         elasticsearch-master-ip-list (->> (for [ip elasticsearch-master-ips] (str "\"" ip "\"")) (str/join ","))
-        config-yml (str "cluster.name: " cluster-name "\n")
+        config-yml "bootstrap.mlockall: true\n"
+        config-yml (str config-yml "cluster.name: " cluster-name "\n")
         config-yml (str config-yml "node.master: " (boolean master) "\n")
         config-yml (str config-yml "node.data: " (boolean data) "\n")
         config-yml (str config-yml "discovery.zen.ping.multicast.enabled: false\n")
