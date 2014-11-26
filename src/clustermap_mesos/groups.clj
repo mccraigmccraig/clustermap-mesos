@@ -71,8 +71,8 @@
   (require '[pallet.api :refer :all])
   (require '[clustermap-mesos.groups :refer :all] :reload)
   (require '[pallet.actions :as actions])
-
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
+
   (def s (converge {(mesos-master-group) 3
                     (mesos-data-slave-group) 3
                     (mesos-nodata-slave-group) 0}
@@ -90,4 +90,13 @@
             :phase (plan-fn (actions/package-manager :update)
                             (actions/package "bash" :action :upgrade)))
       nil)
+
+  ;; DON'T DO THIS : lift a single group
+  ;; groups needs access to other groups to set master ips etc
+  (require '[clustermap-mesos.servers.elasticsearch :as ess])
+  (do (lift [(mesos-data-slave-group)]
+            :compute mesos-eu-west-1
+            :phase  (-> (ess/elasticsearch-data-server "clustermap" "2g") :phases :configure))
+      nil)
+
   )
