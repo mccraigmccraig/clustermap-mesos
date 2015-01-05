@@ -91,15 +91,17 @@
   (def s (converge {(mesos-master-group cluster-params) 3
                     (mesos-data-slave-group cluster-params) 3
                     (mesos-nodata-slave-group cluster-params) 0}
-                   :compute mesos-eu-west-1))
+                   :compute mesos-eu-west-1
+                   :phase [:install :configure :restart]))
 
   (add-slaves-to-aws-elasticloadbalancers cluster-params :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
 
-  ;; general lift : upgrade and configure everything
+  ;; general lift : configure and restart everything already installed
   (do (lift [(mesos-master-group cluster-params)
              (mesos-data-slave-group cluster-params)
              (mesos-nodata-slave-group cluster-params)]
-            :compute mesos-eu-west-1)
+            :compute mesos-eu-west-1
+            :phase [:configure :restart])
       nil)
 
   ;; upgrade a package (for shellshock patches in this case)

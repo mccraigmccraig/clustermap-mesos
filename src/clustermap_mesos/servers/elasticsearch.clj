@@ -18,19 +18,20 @@
   []
   (server-spec
    :phases
-   {:configure (plan-fn
-                (package-source "elasticsearch" :aptitude {:url "http://packages.elasticsearch.org/elasticsearch/1.3/debian"
-                                                           :release "stable"
-                                                           :scopes ["main"]
-                                                           :key-url "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"})
-                (package-manager :update)
-                (package "openjdk-7-jdk")
-                (package "elasticsearch")
-                (package "python-pip")
+   {:install (plan-fn
+              (package-source "elasticsearch" :aptitude {:url "http://packages.elasticsearch.org/elasticsearch/1.3/debian"
+                                                         :release "stable"
+                                                         :scopes ["main"]
+                                                         :key-url "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"})
+              (package-manager :update)
+              (package "openjdk-7-jdk")
+              (package "elasticsearch")
+              (package "python-pip")
 
-                (install-marvel)
-                (install-cloud-aws)
-                (exec-script* "pip install elasticsearch-curator")
+              (install-marvel)
+              (install-cloud-aws)
+              (exec-script* "pip install elasticsearch-curator"))
+    :configure (plan-fn
                 (remote-file "/usr/local/bin/elasticsearch-clean" :local-file "resources/files/elasticsearch/elasticsearch-clean" :mode "755")
                 (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01 * * * root /usr/local/bin/elasticsearch-clean")
                 (exec-script* "sysctl -w vm.max_map_count=262144")
@@ -53,7 +54,6 @@
     (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
     (exec-script* "if ! grep /etc/default/elasticsearch /usr/share/elasticsearch/bin/elasticsearch.in.sh ; then mv /usr/share/elasticsearch/bin/elasticsearch.in.sh /usr/share/elasticsearch/bin/elasticsearch.in.sh.org ; echo -e '#!/bin/bash\n. /etc/default/elasticsearch\n\n' > /usr/share/elasticsearch/bin/elasticsearch.in.sh ; cat /usr/share/elasticsearch/bin/elasticsearch.in.sh.org >> /usr/share/elasticsearch/bin/elasticsearch.in.sh ; fi")
     (exec-script* "update-rc.d -f elasticsearch remove")
-    (service "elasticsearch" :action :restart :service-impl :upstart)
 
     (remote-file "/usr/local/bin/elasticsearch-register-s3-repository" :local-file "resources/files/elasticsearch/elasticsearch-register-s3-repository" :mode "755")
     (remote-file "/usr/local/bin/elasticsearch-snapshot" :local-file "resources/files/elasticsearch/elasticsearch-snapshot" :mode "755")))
@@ -65,7 +65,9 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name mem :master true :data false))}))
+                (elasticsearch-config cluster-name mem :master true :data false))
+    :restart (plan-fn
+              (service "elasticsearch" :action :restart :service-impl :upstart))}))
 
 (defn elasticsearch-data-server
   [cluster-name mem]
@@ -73,7 +75,9 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name mem :master false :data true))}))
+                (elasticsearch-config cluster-name mem :master false :data true))
+    :restart (plan-fn
+              (service "elasticsearch" :action :restart :service-impl :upstart))}))
 
 (defn elasticsearch-nodata-server
   [cluster-name mem]
@@ -81,4 +85,6 @@
    :extends [(elasticsearch-base-server)]
    :phases
    {:configure (plan-fn
-                (elasticsearch-config cluster-name mem :master false :data false))}))
+                (elasticsearch-config cluster-name mem :master false :data false))
+    :restart (plan-fn
+              (service "elasticsearch" :action :restart :service-impl :upstart))}))

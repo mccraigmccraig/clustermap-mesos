@@ -35,7 +35,9 @@ clientPort=2181
   (server-spec
    :roles [:zookeeper]
    :phases
-   {:configure (plan-fn
-                (package "zookeeper")
-                (zookeeper-config)
-                (service "zookeeper" :action :restart :service-impl :upstart))}))
+   {:install   (plan-fn
+                (package "zookeeper"))
+    :configure (plan-fn
+                (zookeeper-config))
+    :restart (plan-fn
+              (service "zookeeper" :action :restart :service-impl :upstart))}))

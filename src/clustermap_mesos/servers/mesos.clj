@@ -62,14 +62,15 @@ logging:
   (server-spec
    :extends [(logstash-forwarder-server)]
    :phases
-   {:configure (plan-fn
-                (package-source "mesosphere" :aptitude {:url "http://repos.mesosphere.io/ubuntu"
-                                                        :release "trusty"
-                                                        :scopes ["main"]
-                                                        :key-server "keyserver.ubuntu.com"
-                                                        :key-id "E56151BF"})
-                (package-manager :update)
-                (package "mesos")
+   {:install (plan-fn
+              (package-source "mesosphere" :aptitude {:url "http://repos.mesosphere.io/ubuntu"
+                                                      :release "trusty"
+                                                      :scopes ["main"]
+                                                      :key-server "keyserver.ubuntu.com"
+                                                      :key-id "E56151BF"})
+              (package-manager :update)
+              (package "mesos"))
+    :configure (plan-fn
                 (mesos-base-config))}))
 
 (defplan ^:private mesos-master-config
