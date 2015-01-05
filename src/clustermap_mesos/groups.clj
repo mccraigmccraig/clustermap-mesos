@@ -12,32 +12,32 @@
    [clustermap-mesos.nodes :refer :all]))
 
 (defn mesos-master-group
-  []
-  (group-spec "mesos-master"
+  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
+  (group-spec (str cluster-name "-master")
               :extends [(base-server)
-                        (mesos-master-server "clustermap-mesos")
-                        (elasticsearch-master-server "clustermap" "256m")]
-    :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
+                        (mesos-master-server cluster-name)
+                        (elasticsearch-master-server cluster-name "512m")]
+              :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" location subnet-id security-group-id key-name iam-instance-profile-name)
     ;; :count 3
     ))
 
 (defn mesos-data-slave-group
-  []
-  (group-spec "mesos-data-slave"
+  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
+  (group-spec (str cluster-name "-data-slave")
               :extends [(base-server)
                         (mesos-slave-server)
-                        (elasticsearch-data-server "clustermap" "2g")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
+                        (elasticsearch-data-server cluster-name "2g")]
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" location subnet-id security-group-id key-name iam-instance-profile-name)
     ;; :count 3
     ))
 
 (defn mesos-nodata-slave-group
-  []
-  (group-spec "mesos-nodata-slave"
+  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
+  (group-spec (str cluster-name "-nodata-slave")
               :extends [(base-server)
                         (mesos-slave-server)
-                        (elasticsearch-nodata-server "clustermap" "512m")]
-    :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" "eu-west-1c" "subnet-c9ece28f" "sg-8c2a86e9" "mccraigkey" "cmap2-appserver")
+                        (elasticsearch-nodata-server cluster-name "512m")]
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" location subnet-id security-group-id key-name iam-instance-profile-name)
     ;; :count 3
     ))
 
@@ -64,8 +64,9 @@
                                                   :instances instance-ids}))))
 
 (defn add-slaves-to-aws-elasticloadbalancers
-  [compute-service-id load-balancer-names]
-  (add-nodes-to-aws-elasticloadbalancers compute-service-id [(mesos-data-slave-group) (mesos-nodata-slave-group)] load-balancer-names))
+  [cluster-params compute-service-id load-balancer-names]
+  (add-nodes-to-aws-elasticloadbalancers compute-service-id [(mesos-data-slave-group cluster-params)
+                                                             (mesos-nodata-slave-group cluster-params)] load-balancer-names))
 
 (comment
   (require '[pallet.api :refer :all])
@@ -73,19 +74,38 @@
   (require '[pallet.actions :as actions])
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
 
-  (def s (converge {(mesos-master-group) 3
-                    (mesos-data-slave-group) 3
-                    (mesos-nodata-slave-group) 0}
+  (def cluster-params {:cluster-name "clustermap"
+                       :location "eu-west-1c"
+                       :subnet-id "subnet-c9ece28f"
+                       :security-group-id "sg-8c2a86e9"
+                       :key-name "mccraigkey"
+                       :iam-instance-profile-name "cmap2-appserver"})
+
+  (def cluster-params {:cluster-name "test"
+                       :location "eu-west-1c"
+                       :subnet-id "subnet-c9ece28f"
+                       :security-group-id "sg-8c2a86e9"
+                       :key-name "mccraigkey"
+                       :iam-instance-profile-name "cmap2-appserver"})
+
+  (def s (converge {(mesos-master-group cluster-params) 3
+                    (mesos-data-slave-group cluster-params) 3
+                    (mesos-nodata-slave-group cluster-params) 0}
                    :compute mesos-eu-west-1))
-  (add-slaves-to-aws-elasticloadbalancers :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
+
+  (add-slaves-to-aws-elasticloadbalancers cluster-params :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
 
   ;; general lift : upgrade and configure everything
-  (do (lift [(mesos-master-group) (mesos-data-slave-group) (mesos-nodata-slave-group)]
+  (do (lift [(mesos-master-group cluster-params)
+             (mesos-data-slave-group cluster-params)
+             (mesos-nodata-slave-group cluster-params)]
             :compute mesos-eu-west-1)
       nil)
 
   ;; upgrade a package (for shellshock patches in this case)
-  (do (lift [(mesos-master-group) (mesos-data-slave-group) (mesos-nodata-slave-group)]
+  (do (lift [(mesos-master-group cluster-params)
+             (mesos-data-slave-group cluster-params)
+             (mesos-nodata-slave-group cluster-params)]
             :compute mesos-eu-west-1
             :phase (plan-fn (actions/package-manager :update)
                             (actions/package "bash" :action :upgrade)))
@@ -94,7 +114,7 @@
   ;; DON'T DO THIS : lift a single group
   ;; groups needs access to other groups to set master ips etc
   (require '[clustermap-mesos.servers.elasticsearch :as ess])
-  (do (lift [(mesos-data-slave-group)]
+  (do (lift [(mesos-data-slave-group cluster-params)]
             :compute mesos-eu-west-1
             :phase  (-> (ess/elasticsearch-data-server "clustermap" "2g") :phases :configure))
       nil)
