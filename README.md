@@ -4,8 +4,8 @@ A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, wit
 
 You currently get :
 
-* master nodes : zookeeper, mesos master, marathon  master
-* slave nodes : docker, mesos slave
+* master nodes : zookeeper, mesos master, marathon  master, haproxy, logstash-forwarder
+* slave nodes : docker, mesos slave, haproxy, logstash-forwarder
 
 all nodes get an haproxy configured from marathon's api, so any apps running on mesos/marathon are available at the configured port(s) on localhost
 
