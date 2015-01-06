@@ -23,7 +23,7 @@
               (package "git")
               (exec-script* "if ! test -d /opt/marathon ; then git clone https://github.com/mesosphere/marathon.git /opt/marathon ; fi")
               (exec-script* "cd /opt/marathon ; git fetch --tags")
-              (exec-script* "cd /opt/marathon ; git checkout -B v0.7.0-RC2 tags/v0.7.0-RC2"))}))
+              (exec-script* "cd /opt/marathon ; git checkout -B v0.7.6 tags/v0.7.6"))}))
 
 (defn ^:private marathon-master-server-ips
   []
@@ -55,7 +55,6 @@
    {:install (plan-fn
               (package "haproxy"))
     :configure (plan-fn
-                (enable-marathon-service)
                 (marathon-haproxy-configurator-config))
     :restart (plan-fn
               (service "haproxy" :action :restart :service-impl :upstart))}))
@@ -67,5 +66,8 @@
    :extends [(marathon-base-server)
              (marathon-haproxy-server)]
    :phases
-   {:restart (plan-fn
+   {:configure (plan-fn
+                (enable-marathon-service)
+                (remote-file "/etc/init/marathon.conf" :local-file "resources/files/marathon/marathon.conf" :mode "755"))
+    :restart (plan-fn
               (service "marathon" :action :restart :service-impl :upstart))}))

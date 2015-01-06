@@ -102,7 +102,8 @@ logging:
   (let [node-ip (private-ip (target-node))]
     (remote-file "/etc/mesos-slave/ip" :content node-ip)
     (remote-file "/etc/mesos-slave/containerizers" :content "docker,mesos")
-    (remote-file "/etc/mesos-slave/docker" :content "/usr/bin/docker")))
+    (remote-file "/etc/mesos-slave/docker" :content "/usr/bin/docker")
+    (remote-file "/etc/mesos-slave/executor_registration_timeout" :content "5mins")))
 
 (defn mesos-slave-server
   "Define a server spec for mesos-slave servers"
