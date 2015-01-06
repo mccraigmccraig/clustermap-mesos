@@ -97,19 +97,27 @@ logging:
       :restart (plan-fn
                 (service "mesos-master" :action :restart :service-impl :upstart))}))
 
+(defn mesos-slave-attributes
+  [attrs]
+  (->> (for [[key val] attrs]
+         (str (name key) ":" val))
+       (str/join ";")))
+
 (defplan ^:private mesos-slave-config
-  []
+  [attrs]
   (let [node-ip (private-ip (target-node))]
     (remote-file "/etc/init/zookeeper.override" :action :delete :force true)
     (remote-file "/etc/init/zookeeper.override" :content "manual")
     (remote-file "/etc/mesos-slave/ip" :content node-ip)
     (remote-file "/etc/mesos-slave/containerizers" :content "docker,mesos")
     (remote-file "/etc/mesos-slave/docker" :content "/usr/bin/docker")
-    (remote-file "/etc/mesos-slave/executor_registration_timeout" :content "5mins")))
+    (remote-file "/etc/mesos-slave/executor_registration_timeout" :content "5mins")
+    (when (not-empty attrs)
+      (remote-file "/etc/mesos-slave/attributes" :content (mesos-slave-attributes attrs)))))
 
 (defn mesos-slave-server
   "Define a server spec for mesos-slave servers"
-  []
+  [& [{:as attrs}]]
   (server-spec
    :extends [(mesos-base-server)
              (docker-server)
@@ -117,7 +125,7 @@ logging:
    :phases
    {:configure (plan-fn
                 (remote-file "/etc/init/mesos-master.override" :content "manual")
-                (mesos-slave-config)
+                (mesos-slave-config attrs)
                 (chronos-config))
     :restart (plan-fn
               ;; zookeeper package gets installed and started as a dependency of mesos
