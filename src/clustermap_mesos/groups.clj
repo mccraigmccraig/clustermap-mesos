@@ -8,56 +8,25 @@
    [clustermap-mesos.servers.base :refer [base-server]]
    [clustermap-mesos.servers.mesos :refer [mesos-master-server mesos-slave-server]]
    [clustermap-mesos.servers.elasticsearch
-    :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]]
-   [clustermap-mesos.nodes :refer :all]))
+    :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]]))
 
 (defn mesos-master-group
-  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
+  [{:keys [cluster-name node-spec extends]}]
   (group-spec (str cluster-name "-master")
-              :extends [(base-server)
-                        (mesos-master-server cluster-name)
-                        (elasticsearch-master-server cluster-name "512m")]
-              :node-spec (eu-west-ubuntu-1404-hvm-ebs-node
-                          {:hardware "t2.small"
-                           :location location
-                           :subnet-id subnet-id
-                           :security-group-id security-group-id
-                           :key-name key-name
-                           :iam-instance-profile-name iam-instance-profile-name})
-    ;; :count 3
-    ))
+              :extends (into [(base-server)
+                              (mesos-master-server cluster-name)]
+                             extends)
+              :roles [:mesos-master]
+              :node-spec node-spec))
 
-(defn mesos-data-slave-group
-  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
-  (group-spec (str cluster-name "-data-slave")
-              :extends [(base-server)
-                        (mesos-slave-server)
-                        (elasticsearch-data-server cluster-name "2g")]
-              :node-spec (eu-west-ubuntu-1404-pv-ebs-node
-                          {:hardware "m3.large"
-                           :location location
-                           :subnet-id subnet-id
-                           :security-group-id security-group-id
-                           :key-name key-name
-                           :iam-instance-profile-name iam-instance-profile-name})
-    ;; :count 3
-    ))
-
-(defn mesos-nodata-slave-group
-  [{:keys [cluster-name location subnet-id security-group-id key-name iam-instance-profile-name]}]
-  (group-spec (str cluster-name "-nodata-slave")
-              :extends [(base-server)
-                        (mesos-slave-server)
-                        (elasticsearch-nodata-server cluster-name "512m")]
-              :node-spec (eu-west-ubuntu-1404-pv-ebs-node
-                          {:hardware "m3.large"
-                           :location location
-                           :subnet-id subnet-id
-                           :security-group-id security-group-id
-                           :key-name key-name
-                           :iam-instance-profile-name iam-instance-profile-name})
-    ;; :count 3
-    ))
+(defn mesos-slave-group
+  [{:keys [cluster-name slave-group-name node-spec attributes extends]}]
+  (group-spec (str cluster-name "-" (or slave-group-name "slave"))
+              :extends (into [(base-server)
+                              (mesos-slave-server attributes)]
+                             extends)
+              :roles [:mesos-slave]
+              :node-spec node-spec))
 
 (defn- make-sequential
   [x]
@@ -82,50 +51,63 @@
                                                   :instances instance-ids}))))
 
 (defn add-slaves-to-aws-elasticloadbalancers
-  [cluster-params compute-service-id load-balancer-names]
-  (add-nodes-to-aws-elasticloadbalancers compute-service-id [(mesos-data-slave-group cluster-params)
-                                                             (mesos-nodata-slave-group cluster-params)] load-balancer-names))
+  [cluster-groups compute-service-id load-balancer-names]
+  (let [slave-groups (filter #(:mesos-slave (:roles %)) (keys cluster-groups))]
+    (add-nodes-to-aws-elasticloadbalancers compute-service-id slave-groups load-balancer-names)))
 
 (comment
   (require '[pallet.api :refer :all])
   (require '[clustermap-mesos.groups :refer :all] :reload)
+  (require '[clustermap-mesos.nodes :refer :all] :reload)
   (require '[pallet.actions :as actions])
+  (require '[clustermap-mesos.servers.elasticsearch
+             :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]])
+
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
 
-  (def cluster-params {:cluster-name "clustermap"
-                       :location "eu-west-1c"
-                       :subnet-id "subnet-c9ece28f"
-                       :security-group-id "sg-8c2a86e9"
-                       :key-name "mccraigkey"
-                       :iam-instance-profile-name "cmap2-appserver"})
+  (def vpc-params {:location "eu-west-1c"
+                   :subnet-id "subnet-c9ece28f"
+                   :security-group-id "sg-8c2a86e9"
+                   :key-name "mccraigkey"
+                   :iam-instance-profile-name "cmap2-appserver"})
 
-  (def cluster-params {:cluster-name "test"
-                       :location "eu-west-1c"
-                       :subnet-id "subnet-c9ece28f"
-                       :security-group-id "sg-8c2a86e9"
-                       :key-name "mccraigkey"
-                       :iam-instance-profile-name "cmap2-appserver"})
+  (def small-node (eu-west-ubuntu-1404-hvm-ebs-node (merge vpc-params {:hardware "t2.small" :volume-size 100})))
+  (def large-node (eu-west-ubuntu-1404-hvm-ebs-node (merge vpc-params {:hardware "m3.large" :volume-size 200})))
 
-  (def s (converge {(mesos-master-group cluster-params) 3
-                    (mesos-data-slave-group cluster-params) 3
-                    (mesos-nodata-slave-group cluster-params) 0}
+  (def cluster-groups
+    {(mesos-master-group {:cluster-name "mesos" :node-spec small-node :extends [(elasticsearch-master-server cluster-name "512m")]}) 3
+     (mesos-slave-group {:cluster-name "mesos" :node-spec large-node :extends [(elasticsearch-data-server cluster-name "2g")]}) 2})
+
+  (def cluster-groups
+    {(mesos-master-group {:cluster-name "test"
+                          :node-spec small-node
+                          :extends [(elasticsearch-master-server "test" "512m")]}) 3
+
+     (mesos-slave-group {:cluster-name "test"
+                         :slave-group-name "cassandra-slave"
+                         :node-spec large-node
+                         :attributes {:cassandra true}}) 2
+
+     (mesos-slave-group {:cluster-name "test"
+                         :slave-group-name "es-slave"
+                         :node-spec large-node
+                         :extends [(elasticsearch-data-server "test" "2g")]
+                         :attributes {:elasticsearch true}}) 2})
+
+  (def s (converge cluster-groups
                    :compute mesos-eu-west-1
                    :phase [:install :configure :restart]))
 
-  (add-slaves-to-aws-elasticloadbalancers cluster-params :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
+  (add-slaves-to-aws-elasticloadbalancers cluster-groups :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
 
   ;; general lift : configure and restart everything already installed
-  (do (lift [(mesos-master-group cluster-params)
-             (mesos-data-slave-group cluster-params)
-             (mesos-nodata-slave-group cluster-params)]
+  (do (lift (keys cluster-groups)
             :compute mesos-eu-west-1
             :phase [:configure :restart])
       nil)
 
   ;; upgrade a package (for shellshock patches in this case)
-  (do (lift [(mesos-master-group cluster-params)
-             (mesos-data-slave-group cluster-params)
-             (mesos-nodata-slave-group cluster-params)]
+  (do (lift (keys cluster-groups)
             :compute mesos-eu-west-1
             :phase (plan-fn (actions/package-manager :update)
                             (actions/package "bash" :action :upgrade)))
@@ -138,5 +120,4 @@
             :compute mesos-eu-west-1
             :phase  (-> (ess/elasticsearch-data-server "clustermap" "2g") :phases :configure))
       nil)
-
   )
