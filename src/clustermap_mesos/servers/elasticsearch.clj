@@ -19,7 +19,7 @@
   (server-spec
    :phases
    {:install (plan-fn
-              (package-source "elasticsearch" :aptitude {:url "http://packages.elasticsearch.org/elasticsearch/1.3/debian"
+              (package-source "elasticsearch" :aptitude {:url "http://packages.elasticsearch.org/elasticsearch/1.4/debian"
                                                          :release "stable"
                                                          :scopes ["main"]
                                                          :key-url "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"})
