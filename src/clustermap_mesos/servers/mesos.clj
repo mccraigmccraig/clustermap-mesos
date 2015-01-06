@@ -100,6 +100,8 @@ logging:
 (defplan ^:private mesos-slave-config
   []
   (let [node-ip (private-ip (target-node))]
+    (remote-file "/etc/init/zookeeper.override" :action :delete :force true)
+    (remote-file "/etc/init/zookeeper.override" :content "manual")
     (remote-file "/etc/mesos-slave/ip" :content node-ip)
     (remote-file "/etc/mesos-slave/containerizers" :content "docker,mesos")
     (remote-file "/etc/mesos-slave/docker" :content "/usr/bin/docker")
@@ -118,4 +120,6 @@ logging:
                 (mesos-slave-config)
                 (chronos-config))
     :restart (plan-fn
+              ;; zookeeper package gets installed and started as a dependency of mesos
+              (service "zookeeper" :action :stop :service-impl :upstart)
               (service "mesos-slave" :action :restart :service-impl :upstart))}))
