@@ -32,4 +32,7 @@
               :exclusions [commons-logging]}}
   :local-repo-classpath true
   :repositories
-  {"sonatype" "https://oss.sonatype.org/content/repositories/releases/"})
+  {"sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
+
+  :jvm-opts ["-Xmx1g" "-XX:MaxPermSize=128m"]
+  )
