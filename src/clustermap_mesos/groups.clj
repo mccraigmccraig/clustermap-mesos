@@ -17,7 +17,13 @@
               :extends [(base-server)
                         (mesos-master-server cluster-name)
                         (elasticsearch-master-server cluster-name "512m")]
-              :node-spec (eu-west-ubuntu-1404-hvm-ebs-node "t2.small" location subnet-id security-group-id key-name iam-instance-profile-name)
+              :node-spec (eu-west-ubuntu-1404-hvm-ebs-node
+                          {:hardware "t2.small"
+                           :location location
+                           :subnet-id subnet-id
+                           :security-group-id security-group-id
+                           :key-name key-name
+                           :iam-instance-profile-name iam-instance-profile-name})
     ;; :count 3
     ))
 
@@ -27,7 +33,13 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-data-server cluster-name "2g")]
-              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" location subnet-id security-group-id key-name iam-instance-profile-name)
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node
+                          {:hardware "m3.large"
+                           :location location
+                           :subnet-id subnet-id
+                           :security-group-id security-group-id
+                           :key-name key-name
+                           :iam-instance-profile-name iam-instance-profile-name})
     ;; :count 3
     ))
 
@@ -37,7 +49,13 @@
               :extends [(base-server)
                         (mesos-slave-server)
                         (elasticsearch-nodata-server cluster-name "512m")]
-              :node-spec (eu-west-ubuntu-1404-pv-ebs-node "m3.large" location subnet-id security-group-id key-name iam-instance-profile-name)
+              :node-spec (eu-west-ubuntu-1404-pv-ebs-node
+                          {:hardware "m3.large"
+                           :location location
+                           :subnet-id subnet-id
+                           :security-group-id security-group-id
+                           :key-name key-name
+                           :iam-instance-profile-name iam-instance-profile-name})
     ;; :count 3
     ))
 
