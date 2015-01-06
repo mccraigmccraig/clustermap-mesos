@@ -1,8 +1,8 @@
 # clustermap-mesos
 
-A pallet project to manage a mesos cluster for clustermap, with mesos, marathon, docker and elasticsearch
+A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, with mesos, marathon, docker and elasticsearch
 
-You get :
+You currently get :
 
 * master nodes : zookeeper, mesos, marathon and elasticsearch masters
 * data slave nodes : docker, mesos slave and elasticsearch data node
@@ -18,7 +18,7 @@ there are some infrastructure apps defined in apps.sh which will run on mesos/ma
 * logstash : indexes log entries from logstash-forwarder in elasticsearch
 * kibana : dashboard for querying logstash indexes
 
-you will need a `~/.pallet/config.clj` file defining compute services. this one defines an AWS service and a
+you will need a `~/.pallet/config.clj` file defining compute services. this example defines an AWS service and a
 service based on some pre-existing nodes
 
 ```
@@ -44,15 +44,30 @@ once you have defined a compute service then you can configure groups of nodes w
 (require '[clustermap-mesos.groups :refer :all] :reload)
 (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
 
-(converge {(mesos-master-group) 3
-           (mesos-data-slave-group) 3
-           (mesos-nodata-slave-group) 2}
-          :compute mesos-eu-west-1)
+(def cluster-params {:cluster-name "test"
+                     :location "eu-west-1c"
+                     :subnet-id "subnet-c9ece28f"
+                     :security-group-id "sg-8c2a86e9"
+                     :key-name "mccraigkey"
+                     :iam-instance-profile-name "cmap2-appserver"})
 
+;; create nodes, install and configure services
+(converge {(mesos-master-group cluster-params) 3
+           (mesos-data-slave-group cluster-params) 3
+           (mesos-nodata-slave-group cluser-params) 2}
+          :compute mesos-eu-west-1
+          :phase [:install :configure :restart])
+
+;; reconfigure and restart services
+(do (lift [(mesos-master-group cluster-params)
+           (mesos-data-slave-group cluster-params)
+           (mesos-nodata-slave-group cluster-params)]
+          :compute mesos-eu-west-1
+          :phase [:configure :restart])
+    nil)
 
 ```
 
-if you use an AWS service you will need to edit `clustermap-mesos.groups` and change the VPC subnet, security-group, keypair and IAM roles... i'll get around to abstracting out this config at some point, or maybe putting all the `clustermap-mesos.servers.*` namespaces into a separate repo
-
+if you use an AWS VPC service you will need to edit the cluster-params and change the location, VPC subnet id, security-group id, keypair name and IAM roles...
 
 Copyright © Trampoline Systems Limited
