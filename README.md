@@ -1,21 +1,41 @@
 # clustermap-mesos
 
-A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, with mesos, marathon, docker and elasticsearch
+A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, with mesos, marathon, docker, spark and elasticsearch
 
 You currently get :
 
 * master nodes : zookeeper, mesos master, marathon  master, haproxy, logstash-forwarder
-* slave nodes : docker, mesos slave, haproxy, logstash-forwarder
+* slave nodes : docker, mesos slave, haproxy, logstash-forwarder, spark
+
+### HAProxy
 
 all nodes get an haproxy configured from marathon's api, so any apps running on mesos/marathon are available at the configured port(s) on localhost
 
+## logstash-forwarder aka lumberjack
+
 all nodes have logstash-forwarder sending syslog entries to port 5043. the logstash app config in apps.sh will run logstash on mesos/marathon to push log entries from all nodes into elasticsearch : to log from apps in docker containers just mount /dev/log into the container and log to syslog
 
-there are some infrastructure apps defined in apps.sh which will run on mesos/marathon :
+### elasticsearch
+
+there's an optional elasticsearch setup defined with nodata masters and data and nodata slaves : the idea being that if you want elasticsearch, then
+all nodes will have it available at localhost:9200. see below for example
+
+### Apache Spark
+
+there's a spark distro at `/opt/spark-1.1.1-bin-cdh4.tgz` on all nodes, and the mesos zookeeper url is in `/etc/mesos/zk`, so you can unpack the spark distro and run the spark shell with :
+```
+./bin/spark-shell --master mesos://`cat /etc/mesos/zk` --conf spark.executor.uri=file:///opt/spark-1.1.1-bin-cdh4.tgz
+```
+
+### Infrastructure docker apps
+
+there are some infrastructure apps defined in apps.sh which will run on mesos/marathon : run the POSTs from app.sh on one of the mesos masters to start the app under marathon
 
 * chronos : distributed cron
 * logstash : indexes log entries from logstash-forwarder in elasticsearch
 * kibana : dashboard for querying logstash indexes
+
+## Example configuration
 
 you will need a `~/.pallet/config.clj` file defining compute services. this example defines an AWS service and a
 service based on some pre-existing nodes
