@@ -84,7 +84,7 @@
   (def cluster-groups
     {(mesos-master-group {:cluster-name "test"
                           :node-spec small-node
-                          :extends [(elasticsearch-master-server "test" "512m")]}) 3
+                          :extends [(elasticsearch-master-server "test" "512m")]}) 1
 
      ;; (mesos-slave-group {:cluster-name "test"
      ;;                     :slave-group-name "cassandra-slave"
@@ -95,7 +95,7 @@
                          :slave-group-name "es-slave"
                          :node-spec large-node
                          :extends [(elasticsearch-data-server "test" "2g")]
-                         :attributes {:elasticsearch true}}) 2})
+                         :attributes {:elasticsearch true}}) 1})
 
   (def s (converge cluster-groups
                    :compute mesos-eu-west-1

@@ -12,7 +12,7 @@
 
 (defplan ^:private install-cloud-aws
   []
-  (exec-script* "if ! test -e /usr/share/elasticsearch/plugins/cloud-aws ; then cd /usr/share/elasticsearch ; ./bin/plugin -i elasticsearch/elasticsearch-cloud-aws/2.3.0 ; fi"))
+  (exec-script* "if ! test -e /usr/share/elasticsearch/plugins/cloud-aws ; then cd /usr/share/elasticsearch ; ./bin/plugin -i elasticsearch/elasticsearch-cloud-aws/2.4.1 ; fi"))
 
 (defn- elasticsearch-base-server
   []
