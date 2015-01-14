@@ -9,13 +9,15 @@
    [clustermap-mesos.servers.mesos :refer [mesos-master-server mesos-slave-server]]
    [clustermap-mesos.servers.elasticsearch
     :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]]
-   [clustermap-mesos.servers.spark :refer [spark-server]]))
+   [clustermap-mesos.servers.spark :refer [spark-server]]
+   [clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]]))
 
 (defn mesos-master-group
   [{:keys [cluster-name node-spec extends]}]
   (group-spec (str cluster-name "-master")
               :extends (into [(base-server)
                               (mesos-master-server cluster-name)
+                              (cassandra-client-server)
                               (spark-server)]
                              extends)
               :roles [:mesos-master]
@@ -26,6 +28,7 @@
   (group-spec (str cluster-name "-" (or slave-group-name "slave"))
               :extends (into [(base-server)
                               (mesos-slave-server attributes)
+                              (cassandra-client-server)
                               (spark-server)]
                              extends)
               :roles [:mesos-slave]
@@ -65,6 +68,7 @@
   (require '[pallet.actions :as actions])
   (require '[clustermap-mesos.servers.elasticsearch
              :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]])
+  (require '[clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]])
 
   (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
 
@@ -86,15 +90,16 @@
                           :node-spec small-node
                           :extends [(elasticsearch-master-server "test" "512m")]}) 1
 
-     ;; (mesos-slave-group {:cluster-name "test"
-     ;;                     :slave-group-name "cassandra-slave"
-     ;;                     :node-spec large-node
-     ;;                     :attributes {:cassandra true}}) 2
+     (mesos-slave-group {:cluster-name "test"
+                         :slave-group-name "data-slave"
+                         :node-spec large-node
+                         :extends [(elasticsearch-data-server "test" "2g") (cassandra-server "test")]
+                         :attributes {:elasticsearch true}}) 2
 
      (mesos-slave-group {:cluster-name "test"
-                         :slave-group-name "es-slave"
+                         :slave-group-name "nodata-slave"
                          :node-spec large-node
-                         :extends [(elasticsearch-data-server "test" "2g")]
+                         :extends [(elasticsearch-nodata-server "test" "512m")]
                          :attributes {:elasticsearch true}}) 1})
 
   (def s (converge cluster-groups

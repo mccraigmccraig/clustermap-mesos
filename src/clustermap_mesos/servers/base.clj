@@ -11,6 +11,7 @@
    :phases
    {:bootstrap (plan-fn
                 (package-manager :update)
+                (package "openjdk-7-jdk") ;; because cassandra doesn't declare it's jdk dep
                 (automated-admin-user)
                 (exec-script* "locale-gen en_GB.UTF-8 en_US.UTF-8"))
     :install (plan-fn

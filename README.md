@@ -1,6 +1,6 @@
 # clustermap-mesos
 
-A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, with mesos, marathon, docker, spark and elasticsearch
+A pallet project to manage a mesos cluster on AWS VPC or pre-existing nodes, with mesos, marathon, docker, cassandra, elasticsearch and spark
 
 You currently get :
 
@@ -14,6 +14,10 @@ all nodes get an haproxy configured from marathon's api, so any apps running on 
 ## logstash-forwarder aka lumberjack
 
 all nodes have logstash-forwarder sending syslog entries to port 5043. the logstash app config in apps.sh will run logstash on mesos/marathon to push log entries from all nodes into elasticsearch : to log from apps in docker containers just mount /dev/log into the container and log to syslog
+
+### Cassandra
+
+there's an optional cassandra setup defined, with all nodes configured with the ip addresses of those nodes hosting cassandra nodes. see below for example
 
 ### elasticsearch
 
@@ -62,7 +66,10 @@ once you have defined a compute service then you can configure groups of nodes w
 (require '[pallet.api :refer :all])
 (require '[clustermap-mesos.groups :refer :all] :reload)
 (require '[clustermap-mesos.nodes :refer :all] :reload)
-(require '[clustermap-mesos.servers.elasticsearch :refer :all])
+(require '[pallet.actions :as actions])
+(require '[clustermap-mesos.servers.elasticsearch
+           :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]])
+(require '[clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]])
 
 (def mesos-eu-west-1 (compute-service :mesos-eu-west-1))
 
@@ -81,18 +88,19 @@ once you have defined a compute service then you can configure groups of nodes w
 (def cluster-groups
   {(mesos-master-group {:cluster-name "test"
                         :node-spec small-node
-                        :extends [(elasticsearch-master-server "test" "512m")]}) 3
+                        :extends [(elasticsearch-master-server "test" "512m")]}) 1
 
    (mesos-slave-group {:cluster-name "test"
-                       :slave-group-name "cassandra-slave"
+                       :slave-group-name "data-slave"
                        :node-spec large-node
-                       :attributes {:cassandra true}}) 2
+                       :extends [(elasticsearch-data-server "test" "2g") (cassandra-server "test")]
+                       :attributes {:elasticsearch true}}) 2
 
    (mesos-slave-group {:cluster-name "test"
-                       :slave-group-name "es-slave"
+                       :slave-group-name "nodata-slave"
                        :node-spec large-node
-                       :extends [(elasticsearch-data-server "test" "2g")]
-                       :attributes {:elasticsearch true}}) 2})
+                       :extends [(elasticsearch-nodata-server "test" "512m")]
+                       :attributes {:elasticsearch true}}) 1})
 
 ;; create nodes, install and configure services
 (def s (converge cluster-groups
