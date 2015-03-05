@@ -20,13 +20,13 @@
         zookeeper-ips (if (empty? zookeeper-ips) [node-ip] zookeeper-ips)]
     zookeeper-ips))
 
-(defn ^:private zookeeper-servers
+(defn zookeeper-servers
   []
   (->> (zookeeper-server-ips)
        (map (fn [ip] (str ip ":2181")))
        (str/join ",")))
 
-(defn ^:private zookeeper-url
+(defn zookeeper-url
   []
   (str "zk://" (zookeeper-servers) "/mesos"))
 
@@ -57,7 +57,7 @@ logging:
     (directory "/etc/chronos" :action :create)
     (remote-file "/etc/chronos/local_cluster_scheduler.yml" :content config-str)))
 
-(defn- mesos-base-server
+(defn mesos-base-server
   []
   (server-spec
    :extends [(logstash-forwarder-server)]

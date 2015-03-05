@@ -10,7 +10,8 @@
    [clustermap-mesos.servers.elasticsearch
     :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]]
    [clustermap-mesos.servers.spark :refer [spark-server]]
-   [clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]]))
+   [clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]]
+   [clustermap-mesos.servers.kafka :refer [kafka-server]]))
 
 (defn mesos-master-group
   [{:keys [cluster-name node-spec extends]}]
@@ -29,7 +30,8 @@
               :extends (into [(base-server)
                               (mesos-slave-server attributes)
                               (cassandra-client-server)
-                              (spark-server)]
+                              (spark-server)
+                              (kafka-server)]
                              extends)
               :roles [:mesos-slave]
               :node-spec node-spec))

@@ -51,3 +51,20 @@ curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -
     "instances": 2,
     "constraints": [["hostname", "UNIQUE"]]
 }'
+
+# kafka is a queue, here the scheduler is run on marathon
+curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -d '{
+
+    "id": "kafka",
+    "uris": [ "file:///opt/kafka/kafka-mesos-0.4.jar",
+              "file:///opt/kafka/kafka_2.9.2-0.8.1.1.tgz",
+              "file:///opt/kafka/kafka-mesos.properties",
+              "file:///opt/kafka/kafka-mesos.sh"],
+    "cmd":"MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so ./kafka-mesos.sh scheduler 2>&1 | logger -t kafka-scheduler",
+    "ports": [],
+    "env": {},
+    "cpus": 0.25,
+    "mem": 1024.0,
+    "instances": 1,
+    "constraints": [["hostname", "UNIQUE"]]
+}'
