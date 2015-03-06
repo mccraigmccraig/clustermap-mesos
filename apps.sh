@@ -73,7 +73,7 @@ curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -
 curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -d '{
     "id": "storm-mesos",
     "uris": [ "file:///opt/storm/storm-mesos-0.9-configured.tgz" ],
-    "cmd":"MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so ./storm-mesos-0.9/bin/storm-mesos nimbus 2>&1 | logger -t storm-mesos",
+    "cmd":"cd storm-mesos-0.9 ; MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so ./bin/storm-mesos nimbus 2>&1 | logger -t storm-mesos",
     "ports": [],
     "env": {},
     "cpus": 0.25,
