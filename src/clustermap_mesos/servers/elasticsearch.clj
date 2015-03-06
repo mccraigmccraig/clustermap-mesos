@@ -48,7 +48,9 @@
         config-yml (str config-yml "node.master: " (boolean master) "\n")
         config-yml (str config-yml "node.data: " (boolean data) "\n")
         config-yml (str config-yml "discovery.zen.ping.multicast.enabled: false\n")
-        config-yml (str config-yml "discovery.zen.ping.unicast.hosts: [" elasticsearch-master-ip-list "]\n")]
+        config-yml (str config-yml "discovery.zen.ping.unicast.hosts: [" elasticsearch-master-ip-list "]\n")
+        config-yml (str config-yml "http.cors.enabled: true\n")
+        config-yml (str config-yml "http.cors.allow-origin: /https?:\\/\\/localhost(:[0-9]+)?/\n")]
     (remote-file "/etc/init/elasticsearch.conf" :local-file "resources/files/elasticsearch/elasticsearch.conf")
     (remote-file "/etc/elasticsearch/elasticsearch.yml" :content config-yml)
     (remote-file "/etc/default/elasticsearch" :content (str "ES_HEAP_SIZE=" (or mem "1g")))
