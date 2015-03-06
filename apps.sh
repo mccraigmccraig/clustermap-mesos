@@ -48,7 +48,7 @@ curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -
     "env": {"ES_PORT":"9101"},
     "cpus": 0.125,
     "mem": 256.0,
-    "instances": 2,
+    "instances": 1,
     "constraints": [["hostname", "UNIQUE"]]
 }'
 
@@ -61,6 +61,19 @@ curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -
               "file:///opt/kafka/kafka-mesos.properties",
               "file:///opt/kafka/kafka-mesos.sh"],
     "cmd":"MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so ./kafka-mesos.sh scheduler 2>&1 | logger -t kafka-scheduler",
+    "ports": [],
+    "env": {},
+    "cpus": 0.25,
+    "mem": 1024.0,
+    "instances": 1,
+    "constraints": [["hostname", "UNIQUE"]]
+}'
+
+# storm stream processing, here the nimbus scheduler is run under marathon
+curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -d '{
+    "id": "storm-mesos",
+    "uris": [ "file:///opt/storm/storm-mesos-0.9-configured.tgz" ],
+    "cmd":"MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so ./storm-mesos-0.9/bin/storm-mesos nimbus 2>&1 | logger -t storm-mesos",
     "ports": [],
     "env": {},
     "cpus": 0.25,

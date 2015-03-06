@@ -11,7 +11,8 @@
     :refer [elasticsearch-master-server elasticsearch-data-server elasticsearch-nodata-server]]
    [clustermap-mesos.servers.spark :refer [spark-server]]
    [clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]]
-   [clustermap-mesos.servers.kafka :refer [kafka-server]]))
+   [clustermap-mesos.servers.kafka :refer [kafka-server]]
+   [clustermap-mesos.servers.storm :refer [storm-server]]))
 
 (defn mesos-master-group
   [{:keys [cluster-name node-spec extends]}]
@@ -31,7 +32,8 @@
                               (mesos-slave-server attributes)
                               (cassandra-client-server)
                               (spark-server)
-                              (kafka-server)]
+                              (kafka-server)
+                              (storm-server)]
                              extends)
               :roles [:mesos-slave]
               :node-spec node-spec))
@@ -98,11 +100,12 @@
                          :extends [(elasticsearch-data-server "test" "2g") (cassandra-server "test")]
                          :attributes {:elasticsearch true}}) 2
 
-     (mesos-slave-group {:cluster-name "test"
-                         :slave-group-name "nodata-slave"
-                         :node-spec large-node
-                         :extends [(elasticsearch-nodata-server "test" "512m")]
-                         :attributes {:elasticsearch true}}) 1})
+     ;; (mesos-slave-group {:cluster-name "test"
+     ;;                     :slave-group-name "nodata-slave"
+     ;;                     :node-spec large-node
+     ;;                     :extends [(elasticsearch-nodata-server "test" "512m")]
+     ;;                     :attributes {:elasticsearch true}}) 1
+                         })
 
   (def s (converge cluster-groups
                    :compute mesos-eu-west-1

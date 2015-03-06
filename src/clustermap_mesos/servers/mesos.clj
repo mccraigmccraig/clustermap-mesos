@@ -13,7 +13,7 @@
     :refer [marathon-master-server
             marathon-haproxy-server]]))
 
-(defn ^:private zookeeper-server-ips
+(defn zookeeper-server-ips
   []
   (let [node-ip (private-ip (target-node))
         zookeeper-ips (->> (nodes-with-role :zookeeper) (map private-ip) sort)
