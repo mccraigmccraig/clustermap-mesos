@@ -55,7 +55,7 @@ curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -
 # kafka is a queue, here the scheduler is run on marathon
 curl -v -X POST http://localhost:8080/v2/apps -H Content-Type:application/json -d '{
 
-    "id": "kafka",
+    "id": "kafka-mesos",
     "uris": [ "file:///opt/kafka/kafka-mesos-0.4.jar",
               "file:///opt/kafka/kafka_2.9.2-0.8.1.1.tgz",
               "file:///opt/kafka/kafka-mesos.properties",
