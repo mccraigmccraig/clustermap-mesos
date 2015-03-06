@@ -109,14 +109,14 @@
 
   (def s (converge cluster-groups
                    :compute mesos-eu-west-1
-                   :phase [:install :configure :restart]))
+                   :phase [:pre-install :install :configure :restart]))
 
   (add-slaves-to-aws-elasticloadbalancers cluster-groups :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
 
-  ;; general lift : configure and restart everything already installed
+  ;; general lift : non-destructive install, configure and restart everything already installed
   (do (lift (keys cluster-groups)
             :compute mesos-eu-west-1
-            :phase [:configure :restart])
+            :phase [:install :configure :restart])
       nil)
 
   ;; upgrade a package (for shellshock patches in this case)

@@ -36,18 +36,20 @@
   (server-spec
    :roles [:cassandra]
    :phases
-   {:install (plan-fn
-              (package-source "cassandra" :aptitude {:url "http://debian.datastax.com/community"
-                                                     :release "stable"
-                                                     :scopes ["main"]
-                                                     :key-url "http://debian.datastax.com/debian/repo_key"})
-              (package-manager :update)
-              (package "openjdk-7-jdk")
-              (package "dsc21")
-              (package "cassandra-tools")
-              (directory "/var/lib/cassandra/data/system" :action :delete :recursive true :force true)
-              (directory "/var/lib/cassandra/data/system" :action :create :owner "cassandra" :group "cassandra")
-              (remote-file "/etc/cassandra/cassandra.yaml" :content (cassandra-config cluster-name (cassandra-seed-ips))))
+   {
+    ;; install cassandra in the pre-install stage because of it's delete all the datas requirement
+    :pre-install (plan-fn
+                  (package-source "cassandra" :aptitude {:url "http://debian.datastax.com/community"
+                                                         :release "stable"
+                                                         :scopes ["main"]
+                                                         :key-url "http://debian.datastax.com/debian/repo_key"})
+                  (package-manager :update)
+                  (package "openjdk-7-jdk")
+                  (package "dsc21")
+                  (package "cassandra-tools")
+                  (directory "/var/lib/cassandra/data/system" :action :delete :recursive true :force true)
+                  (directory "/var/lib/cassandra/data/system" :action :create :owner "cassandra" :group "cassandra")
+                  (remote-file "/etc/cassandra/cassandra.yaml" :content (cassandra-config cluster-name (cassandra-seed-ips))))
 
     :configure (plan-fn
                 (remote-file "/etc/cassandra/cassandra.yaml" :content (cassandra-config cluster-name (cassandra-seed-ips))))
