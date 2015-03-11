@@ -86,8 +86,8 @@
   (def large-node (eu-west-ubuntu-1404-hvm-ebs-node (merge vpc-params {:hardware "m3.large" :volume-size 200})))
 
   (def cluster-groups
-    {(mesos-master-group {:cluster-name "mesos" :node-spec small-node :extends [(elasticsearch-master-server "mesos" "512m")]}) 3
-     (mesos-slave-group {:cluster-name "mesos" :node-spec large-node :extends [(elasticsearch-data-server "mesos" "2g")]}) 2})
+    {(mesos-master-group {:cluster-name "clustermap-02" :node-spec small-node :extends [(elasticsearch-master-server "clustermap" "512m")]}) 3
+     (mesos-slave-group {:cluster-name "clustermap-02" :node-spec large-node :extends [(elasticsearch-data-server "clustermap" "4g")]}) 3})
 
   (def cluster-groups
     {(mesos-master-group {:cluster-name "test"
