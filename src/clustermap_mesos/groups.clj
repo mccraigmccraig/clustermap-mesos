@@ -38,6 +38,15 @@
               :roles [:mesos-slave]
               :node-spec node-spec))
 
+(defn member-group
+  [{:keys [cluster-name member-group-name node-spec attributes extends]}]
+  (group-spec (str cluster-name "-" (or member-group-name "console"))
+              :extends (into [(base-server)
+                              (cassandra-client-server)]
+                             extends)
+              :roles []
+              :node-spec node-spec))
+
 (defn- make-sequential
   [x]
   (cond
@@ -87,7 +96,8 @@
 
   (def cluster-groups
     {(mesos-master-group {:cluster-name "clustermap-02" :node-spec small-node :extends [(elasticsearch-master-server "clustermap" "512m")]}) 3
-     (mesos-slave-group {:cluster-name "clustermap-02" :node-spec large-node :extends [(elasticsearch-data-server "clustermap" "4g")]}) 3})
+     (mesos-slave-group {:cluster-name "clustermap-02" :node-spec large-node :extends [(elasticsearch-data-server "clustermap" "4g")]}) 3
+     (member-group {:cluster-name "clustermap-02" :node-spec large-node :extends [(elasticsearch-nodata-server "clustermap" "512m")]}) 1})
 
   (def cluster-groups
     {(mesos-master-group {:cluster-name "test"
@@ -111,12 +121,23 @@
                    :compute mesos-eu-west-1
                    :phase [:pre-install :install :configure :restart]))
 
+  ;; converge without destruction : suxx : :pre-install should be a once-only phase
+  (def s (converge cluster-groups
+                   :compute mesos-eu-west-1
+                   :phase [:install :configure :restart]))
+
   (add-slaves-to-aws-elasticloadbalancers cluster-groups :mesos-eu-west-1 ["clustermap2-mesos-lb" "ccm-mesos-lb" "tcm-mesos-lb"])
 
   ;; general lift : non-destructive install, configure and restart everything already installed
   (do (lift (keys cluster-groups)
             :compute mesos-eu-west-1
             :phase [:install :configure :restart])
+      nil)
+
+  ;; config lift : just update configs
+  (do (lift (keys cluster-groups)
+            :compute mesos-eu-west-1
+            :phase [:configure])
       nil)
 
   ;; upgrade a package (for shellshock patches in this case)
