@@ -1,14 +1,10 @@
 #!/bin/bash
 
 # delete old logstash indexes
-curator delete --older-than 7
-curator delete --disk-space 10
-curator bloom  --older-than 7
+/usr/local/bin/curator delete indices --time-unit days --older-than 7 --timestring '%Y.%m.%d' --prefix logstash
 
 # delete old marvel indexes
-curator delete --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --older-than 3
-curator delete --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --disk-space 10
-curator bloom  --prefix ".marvel-" --exclude-pattern ".marvel-kibana" --older-than 3
+/usr/local/bin/curator delete indices --time-unit days --older-than 3 --timestring '%Y.%m.%d' --prefix ".marvel" --exclude ".marvel-kibana"
 
 # delete old snapshots
-curator snapshot --prefix "snapshot-" --repository clustermap-es-snapshots --delete-older-than 7
+/usr/local/bin/curator delete snapshots --time-unit days --older-than 7 --repository clustermap-es-snapshots --timestring '%Y.%m.%d' --prefix "snapshot-"
