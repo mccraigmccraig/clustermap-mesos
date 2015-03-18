@@ -12,7 +12,8 @@
    [clustermap-mesos.servers.spark :refer [spark-server]]
    [clustermap-mesos.servers.cassandra :refer [cassandra-server cassandra-client-server]]
    [clustermap-mesos.servers.kafka :refer [kafka-server]]
-   [clustermap-mesos.servers.storm :refer [storm-server]]))
+   [clustermap-mesos.servers.storm :refer [storm-server]]
+   [clustermap-mesos.servers.docker :refer [docker-server]]))
 
 (defn mesos-master-group
   [{:keys [cluster-name node-spec extends]}]
@@ -42,6 +43,7 @@
   [{:keys [cluster-name member-group-name node-spec attributes extends]}]
   (group-spec (str cluster-name "-" (or member-group-name "console"))
               :extends (into [(base-server)
+                              (docker-server)
                               (cassandra-client-server)]
                              extends)
               :roles []
