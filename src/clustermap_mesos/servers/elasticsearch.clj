@@ -33,7 +33,7 @@
               (exec-script* "pip install elasticsearch-curator"))
     :configure (plan-fn
                 (remote-file "/usr/local/bin/elasticsearch-clean" :local-file "resources/files/elasticsearch/elasticsearch-clean" :mode "755")
-                (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01 * * * root /usr/local/bin/elasticsearch-clean")
+                (remote-file "/etc/cron.d/elasticsearch-clean" :content "01 01,16,12,18 * * * root /usr/local/bin/elasticsearch-clean")
                 (exec-script* "sysctl -w vm.max_map_count=262144")
                 (exec-script* "if ! grep ^vm.max_map_count /etc/sysctl.conf ; then cp /etc/sysctl.conf /etc/sysctl.conf.org.elasticsearch ; echo -e '\nvm.max_map_count=262144' >> /etc/sysctl.conf ; fi"))}))
 
